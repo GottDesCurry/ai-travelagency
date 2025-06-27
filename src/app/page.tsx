@@ -295,7 +295,6 @@ return (
 );
 } 
 
-export default Page;
 
 
 
