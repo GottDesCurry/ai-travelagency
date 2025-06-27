@@ -2,8 +2,8 @@
 'use client'
 
 import { useState } from 'react'
-import iataCodes from '../data/iata-codes.json'
-import cityTranslations from '../data/city-translations.json'
+import iataCodes from '@/data/iata-codes.json'
+import cityTranslations from '@/data/city-translations.json'
 import FlightCard from '@/components/FlightCard'
 import HotelCard from '@/components/HotelCard'
 import { useEffect } from 'react'
@@ -295,6 +295,7 @@ return (
 );
 } 
 
+export default Page;
 
 
 

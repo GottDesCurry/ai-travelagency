@@ -1,6 +1,6 @@
 // src/app/api/iata-code/route.ts
 
-import iataCodes from './data/iata-codes.json'
+import iataCodes from '@/data/iata-codes.json'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
