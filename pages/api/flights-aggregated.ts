@@ -1,33 +1,49 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
+import { NextRequest, NextResponse } from 'next/server'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { origin, destination, date } = req.query
+type Flight = {
+  id?: string
+  price?: number
+  currency?: string
+  duration?: string
+  stops?: number
+  departure?: object
+  arrival?: object
+  airline?: string
+}
+
+export async function GET(req: NextRequest) {
+  const origin = req.nextUrl.searchParams.get('origin')
+  const destination = req.nextUrl.searchParams.get('destination')
+  const date = req.nextUrl.searchParams.get('date')
 
   if (!origin || !destination || !date) {
-    return res.status(400).json({ error: 'Fehlende Parameter: origin, destination, date' })
+    return NextResponse.json(
+      { error: 'Fehlende Parameter: origin, destination, date' },
+      { status: 400 }
+    )
   }
 
+  const results: Flight[] = []
+
   try {
-    const [amadeusRes, bookingRes] = await Promise.allSettled([
-      fetch(`http://localhost:3000/api/flights?origin=${origin}&destination=${destination}&date=${date}`),
-      fetch(`http://localhost:3000/api/flights-booking?origin=${origin}&destination=${destination}&date=${date}`)
-    ])
+    // Fallback auf Umgebungsvariable z. B. in .env.production
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
-    const results: any[] = []
+    const kiwi = await fetch(
+      `${baseUrl}/api/flights?provider=kiwi&origin=${origin}&destination=${destination}&date=${date}`
+    )
+    const kiwiData = await kiwi.json()
 
-    if (amadeusRes.status === 'fulfilled') {
-      const data = await amadeusRes.value.json()
-      if (Array.isArray(data)) results.push(...data)
-    }
+    const amadeus = await fetch(
+      `${baseUrl}/api/flights?provider=amadeus&origin=${origin}&destination=${destination}&date=${date}`
+    )
+    const amadeusData = await amadeus.json()
 
-    if (bookingRes.status === 'fulfilled') {
-      const data = await bookingRes.value.json()
-      if (Array.isArray(data)) results.push(...data)
-    }
+    results.push(...kiwiData, ...amadeusData)
 
-    res.status(200).json(results)
-  } catch (err: any) {
-    console.error('Fehler bei der aggregierten Flugsuche:', err)
-    res.status(500).json({ error: 'Fehler beim Abrufen der aggregierten Flüge' })
+    return NextResponse.json(results)
+  } catch (err) {
+    console.error('Fehler in /api/flights-aggregated:', err)
+    return NextResponse.json([], { status: 500 })
   }
 }
