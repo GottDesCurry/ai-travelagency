@@ -1,0 +1,188 @@
+[
+  {
+    "city": "Zürich",
+    "code": "ZRH",
+    "country": "Switzerland",
+    "airport": "Zürich Flughafen"
+  },
+  {
+    "city": "Lissabon",
+    "code": "LIS",
+    "country": "Portugal",
+    "airport": "Lisbon Portela Airport"
+  },
+  {
+    "city": "Paris",
+    "code": "PAR",
+    "country": "France",
+    "airport": "All airports"
+  },
+  {
+    "city": "Barcelona",
+    "code": "BCN",
+    "country": "Spain",
+    "airport": "Barcelona El Prat"
+  },
+  {
+    "city": "Berlin",
+    "code": "BER",
+    "country": "Germany",
+    "airport": "Berlin Brandenburg"
+  },
+  {
+    "city": "New York",
+    "code": "NYC",
+    "country": "USA",
+    "airport": "All airports"
+  },
+  {
+    "city": "London",
+    "code": "LON",
+    "country": "United Kingdom",
+    "airport": "All airports"
+  },
+  {
+    "city": "Los Angeles",
+    "code": "LAX",
+    "country": "USA",
+    "airport": "Los Angeles Intl"
+  },
+  {
+    "city": "San Francisco",
+    "code": "SFO",
+    "country": "USA",
+    "airport": "San Francisco Intl"
+  },
+  {
+    "city": "Chicago",
+    "code": "CHI",
+    "country": "USA",
+    "airport": "All airports"
+  },
+  {
+    "city": "Tokyo",
+    "code": "TYO",
+    "country": "Japan",
+    "airport": "All airports"
+  },
+  {
+    "city": "Osaka",
+    "code": "OSA",
+    "country": "Japan",
+    "airport": "All airports"
+  },
+  {
+    "city": "Bangkok",
+    "code": "BKK",
+    "country": "Thailand",
+    "airport": "Suvarnabhumi"
+  },
+  {
+    "city": "Singapore",
+    "code": "SIN",
+    "country": "Singapore",
+    "airport": "Changi"
+  },
+  {
+    "city": "Dubai",
+    "code": "DXB",
+    "country": "United Arab Emirates",
+    "airport": "Dubai Intl"
+  },
+  {
+    "city": "Istanbul",
+    "code": "IST",
+    "country": "Turkey",
+    "airport": "Istanbul Airport"
+  },
+  {
+    "city": "Doha",
+    "code": "DOH",
+    "country": "Qatar",
+    "airport": "Hamad Intl"
+  },
+  {
+    "city": "Delhi",
+    "code": "DEL",
+    "country": "India",
+    "airport": "Indira Gandhi Intl"
+  },
+  {
+    "city": "Mumbai",
+    "code": "BOM",
+    "country": "India",
+    "airport": "Chhatrapati Shivaji"
+  },
+  {
+    "city": "Sydney",
+    "code": "SYD",
+    "country": "Australia",
+    "airport": "Kingsford Smith"
+  },
+  {
+    "city": "Melbourne",
+    "code": "MEL",
+    "country": "Australia",
+    "airport": "Tullamarine"
+  },
+  {
+    "city": "Toronto",
+    "code": "YTO",
+    "country": "Canada",
+    "airport": "All airports"
+  },
+  {
+    "city": "Vancouver",
+    "code": "YVR",
+    "country": "Canada",
+    "airport": "Vancouver Intl"
+  },
+  {
+    "city": "Rome",
+    "code": "ROM",
+    "country": "Italy",
+    "airport": "All airports"
+  },
+  {
+    "city": "Milan",
+    "code": "MIL",
+    "country": "Italy",
+    "airport": "All airports"
+  },
+  {
+    "city": "Vienna",
+    "code": "VIE",
+    "country": "Austria",
+    "airport": "Vienna Intl"
+  },
+  {
+    "city": "Amsterdam",
+    "code": "AMS",
+    "country": "Netherlands",
+    "airport": "Schiphol"
+  },
+  {
+    "city": "Brussels",
+    "code": "BRU",
+    "country": "Belgium",
+    "airport": "Zaventem"
+  },
+  {
+    "city": "Madrid",
+    "code": "MAD",
+    "country": "Spain",
+    "airport": "Barajas"
+  },
+  {
+    "city": "Copenhagen",
+    "code": "CPH",
+    "country": "Denmark",
+    "airport": "Kastrup"
+  },
+  {
+    "city": "Stockholm",
+    "code": "STO",
+    "country": "Sweden",
+    "airport": "All airports"
+  }
+]
