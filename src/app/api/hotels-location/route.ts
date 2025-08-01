@@ -1,4 +1,3 @@
-// src/app/api/hotels-location/route.ts – Korrigiert mit NextResponse
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
