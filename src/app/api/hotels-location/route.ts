@@ -1,16 +1,12 @@
-// src/app/api/hotels-location/route.ts – Optimiert mit Lösung B
-import { NextRequest } from 'next/server'
-import type { NextResponse } from 'next/server'
+// src/app/api/hotels-location/route.ts – Korrigiert mit NextResponse
+import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(req.url)
   const name = searchParams.get('name')
 
   if (!name) {
-    return new Response(JSON.stringify({ error: '❌ city name fehlt' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' }
-    })
+    return NextResponse.json({ error: '❌ city name fehlt' }, { status: 400 })
   }
 
   try {
@@ -24,22 +20,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     if (!response.ok) {
       console.error('❌ Fehler bei Hotels-Location:', response.statusText)
-      return new Response(JSON.stringify({ error: 'Fehler bei der Ortssuche' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      })
+      return NextResponse.json({ error: 'Fehler bei der Ortssuche' }, { status: 500 })
     }
 
     const data = await response.json()
-    return new Response(JSON.stringify(data?.[0] || {}), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    })
+    return NextResponse.json(data?.[0] || {}, { status: 200 })
   } catch (err: any) {
     console.error('❌ Serverfehler in hotels-location:', err)
-    return new Response(JSON.stringify({ error: 'Serverfehler bei Ortssuche' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    })
+    return NextResponse.json({ error: 'Serverfehler bei Ortssuche' }, { status: 500 })
   }
 }
