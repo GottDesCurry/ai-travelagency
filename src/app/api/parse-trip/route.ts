@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { NextResponse } from 'next/server'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
 
@@ -82,6 +83,6 @@ Behebe einfache Rechtschreibfehler oder Erkennungsprobleme automatisch, z. B. 
     })
   } catch (err) {
     console.error('❌ Fehler beim Parsen der Reiseinformationen:', err)
-    return NextResponse.json({ error: 'Interner Fehler bei der Verarbeitung des Prompts.' }, { status: 500 })
+    return NextResponse.json({ error: '❌ city name fehlt' }, { status: 400 })
   }
 }
