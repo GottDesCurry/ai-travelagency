@@ -43,7 +43,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 		<meta name="viewport" content="width=device-width,initial-scale=1" />
 		<title>{String(metadata.title ?? 'AI TravelAgency')}</title>
 		<meta name="description" content={String(metadata.description ?? '')} />
-		<meta name="keywords" content={Array.isArray(metadata.keywords) ? metadata.keywords.join(', ') : metadata.keywords ?? ''} />
+		 <meta
+			name="keywords"
+			content={Array.isArray(metadata.keywords)
+			? metadata.keywords.join(', ')
+			: metadata.keywords ?? ''}
+		/>
 		{/* OpenGraph */}
 		<meta property="og:title" content={metadata.openGraph?.title} />
 		<meta property="og:description" content={metadata.openGraph?.description} />
