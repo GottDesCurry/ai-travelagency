@@ -8,7 +8,7 @@ import './globals.css'
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
 
-export const metadata: Metadata = {
+export const metadata = {
   title: 'Ba & Be Partners – AI Reiseplaner',
   description: 'Baskaran & Beck Partners KLG – Ihr smarter KI-gestützter Reiseplaner für Flüge & Hotels',
   keywords: ['Reise', 'Flugsuche', 'Hotelsuche', 'KI', 'AI', 'Travelplanner'],
@@ -21,9 +21,9 @@ export const metadata: Metadata = {
       { url: '/og-image.png', width: 1200, height: 630, alt: 'Ba & Be Partners AI Reiseplaner' }
     ],
     locale: 'de_CH',
-    type: 'website'
-  }
-}
+    // Achtung: "type" wird von Next.js Metadata nicht unterstützt → entfernen oder in den Head hart coden
+  } satisfies Partial<Metadata['openGraph']>
+} satisfies Metadata
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const navLinks = (
@@ -41,23 +41,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <title>{String(metadata.title ?? 'AI TravelAgency')}</title>
-        <meta name="description" content={String(metadata.description ?? '')} />
-        <meta
-          name="keywords"
-          content={Array.isArray(metadata.keywords)
-            ? metadata.keywords.join(', ')
-            : typeof metadata.keywords === 'string'
-              ? metadata.keywords
-              : ''}
-        />
+        <title>{metadata.title}</title>
+        <meta name="description" content={metadata.description} />
+        <meta name="keywords" content={Array.isArray(metadata.keywords) ? metadata.keywords.join(', ') : metadata.keywords ?? ''} />
         {/* OpenGraph */}
-        <meta property="og:title" content={String(metadata.openGraph?.title ?? '')} />
-        <meta property="og:description" content={String(metadata.openGraph?.description ?? '')} />
-        <meta property="og:url" content={String(metadata.openGraph?.url ?? '')} />
-        <meta property="og:site_name" content={String(metadata.openGraph?.siteName ?? '')} />
-        <meta property="og:type" content={String(metadata.openGraph?.type ?? '')} />
-        <meta property="og:locale" content={String(metadata.openGraph?.locale ?? '')} />
+        <meta property="og:title" content={metadata.openGraph?.title ?? ''} />
+        <meta property="og:description" content={metadata.openGraph?.description ?? ''} />
+        <meta property="og:url" content={metadata.openGraph?.url ?? ''} />
+        <meta property="og:site_name" content={metadata.openGraph?.siteName ?? ''} />
+        <meta property="og:locale" content={metadata.openGraph?.locale ?? ''} />
+        <meta property="og:type" content="website" />
         {metadata.openGraph?.images?.map((img, i) => (
           <meta key={i} property="og:image" content={img.url} />
         ))}
