@@ -9,19 +9,18 @@ const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
 
 export const metadata = {
-  title: 'Ba & Be Partners – AI Reiseplaner',
-  description: 'Baskaran & Beck Partners KLG – Ihr smarter KI-gestützter Reiseplaner für Flüge & Hotels',
+  title: 'Book Repeat – AI Reiseplaner',
+  description: 'Book Repeat – Dein smarter KI-gestützter Reiseplaner für Flüge & Hotels',
   keywords: ['Reise', 'Flugsuche', 'Hotelsuche', 'KI', 'AI', 'Travelplanner'],
   openGraph: {
-    title: 'Ba & Be Partners – AI Reiseplaner',
-    description: 'Nutzen Sie künstliche Intelligenz für optimale Flug- und Hotelangebote.',
-    url: 'https://ba-be-partners.ch',
-    siteName: 'Ba & Be Partners',
+    title: 'Book Repeat – AI Reiseplaner',
+    description: 'Nutze künstliche Intelligenz für optimale Flug- und Hotelangebote.',
+    url: 'https://book-repeat.ch',
+    siteName: 'Book Repeat',
     images: [
-      { url: '/og-image.png', width: 1200, height: 630, alt: 'Ba & Be Partners AI Reiseplaner' }
+      { url: '/og-image.png', width: 1200, height: 630, alt: 'Book Repeat AI Reiseplaner' }
     ],
-    locale: 'de_CH',
-    // Achtung: "type" wird von Next.js Metadata nicht unterstützt → entfernen oder in den Head hart coden
+    locale: 'de_CH'
   } satisfies Partial<Metadata['openGraph']>
 } satisfies Metadata
 
@@ -56,20 +55,21 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         ))}
       </head>
 
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased text-gray-800 bg-gradient-to-b from-[#bcd2f7] to-[#d8c7f3] min-h-screen flex flex-col`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased text-gray-800 bg-white min-h-screen flex flex-col`}>
         {/* Hero Header */}
-        <div className="relative flex flex-col items-center justify-center text-center pt-14 pb-6">
-          <div className="absolute top-4 left-6 text-xl font-semibold text-gray-900">Ba & Be Partners</div>
+        <div className="relative flex flex-col items-center justify-center text-center pt-10 pb-6 bg-gradient-to-b from-[#e0e7ff] to-[#c7d2fe] shadow-md">
+          <div className="absolute top-4 left-6 text-xl font-semibold text-gray-900">Book Repeat</div>
           <div className="absolute top-4 right-6 bg-indigo-700 text-white text-xs font-bold px-3 py-1 rounded-full shadow">BETA</div>
-          <div className="mt-10 flex items-center gap-3">
+          <div className="mt-10 flex flex-col items-center gap-2">
             <Image
-              src="/earth-icon.svg"
-              alt="Globus"
-              width={40}
-              height={40}
+              src="/logo-b-icon.png"
+              alt="Book Repeat Logo"
+              width={44}
+              height={44}
               priority
             />
-            <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight drop-shadow-sm">AI Reiseplaner</h1>
+            <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 tracking-tight drop-shadow-sm">AI Reiseplaner</h1>
+            <p className="text-sm text-gray-600 mt-2 max-w-md">Finde jetzt günstige Flüge und Hotels mit künstlicher Intelligenz.</p>
           </div>
         </div>
 
@@ -79,8 +79,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </main>
 
         {/* Footer */}
-        <footer className="bg-white border-t mt-12">
-          <div className="max-w-5xl mx-auto px-6 pt-8 pb-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-gray-700 text-sm">
+        <footer className="bg-gray-50 border-t mt-12">
+          <div className="max-w-6xl mx-auto px-6 pt-8 pb-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-gray-700 text-sm">
             <div>
               <h4 className="font-semibold mb-2">Unternehmen</h4>
               <ul className="space-y-1">{navLinks}</ul>
@@ -111,8 +111,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             </div>
           </div>
           <div className="border-t border-gray-200">
-            <div className="max-w-5xl mx-auto px-6 py-4 text-center text-xs text-gray-500">
-              © {new Date().getFullYear()} Ba & Be Partners KLG – Inwilerriedstrasse 65, 6340 Baar
+            <div className="max-w-6xl mx-auto px-6 py-4 text-center text-xs text-gray-500">
+              © {new Date().getFullYear()} Book Repeat – Spechtenstrasse 28, 6036 Dierikon
             </div>
           </div>
         </footer>
