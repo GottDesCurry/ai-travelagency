@@ -11,6 +11,8 @@ type ParsedTrip = {
   people: number | null
 }
 
+// ❌ Diese Funktion wird aktuell nicht verwendet → entfernt, um ESLint-Fehler zu vermeiden
+/*
 function getNextFutureDateFromPartial(day: number, month: number): string {
   const today = new Date()
   const currentYear = today.getFullYear()
@@ -21,9 +23,10 @@ function getNextFutureDateFromPartial(day: number, month: number): string {
   const nextYear = new Date(currentYear + 1, month - 1, day)
   return nextYear.toISOString().split('T')[0]
 }
+*/
 
 export async function POST(req: NextRequest) {
-  const { prompt } = await req.json() as { prompt: string }
+  const { prompt } = (await req.json()) as { prompt: string }
 
   const systemPrompt = `
 Extrahiere folgende Informationen aus dem Text:
@@ -55,12 +58,11 @@ Behebe einfache Rechtschreibfehler oder Erkennungsprobleme automatisch, z. B. 
     })
 
     const parsed: ParsedTrip = JSON.parse(chatResponse.choices[0].message.content || '{}')
-    let { date, returnDate, origin, destination, people } = parsed
+    const { date, returnDate, origin, destination, people } = parsed // ✅ const statt let
 
     const today = new Date()
     const maxYear = today.getFullYear() + 1
 
-    // Datum validieren
     if (date) {
       const parts = date.split('-').map(Number)
       if (parts.length === 3) {
@@ -76,7 +78,7 @@ Behebe einfache Rechtschreibfehler oder Erkennungsprobleme automatisch, z. B. 
       destination: destination || null,
       date: date || null,
       returnDate: returnDate || null,
-      people: people ?? null
+      people: people ?? null,
     })
   } catch (err) {
     console.error('❌ Fehler beim Parsen der Reiseinformationen:', err)

@@ -1,6 +1,7 @@
 // Cleaned AI Reiseplaner Layout (visually refined)
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 
@@ -25,8 +26,6 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-
-
   const navLinks = (
     <>
       <li><Link href="/">Home</Link></li>
@@ -62,7 +61,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <div className="absolute top-4 left-6 text-xl font-semibold text-gray-900">Ba & Be Partners</div>
           <div className="absolute top-4 right-6 bg-indigo-700 text-white text-xs font-bold px-3 py-1 rounded-full shadow">BETA</div>
           <div className="mt-10 flex items-center gap-3">
-            <img src="/earth-icon.svg" alt="Globus" className="w-10 h-10" />
+            <Image
+              src="/earth-icon.svg"
+              alt="Globus"
+              width={40}
+              height={40}
+              priority
+            />
             <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight drop-shadow-sm">AI Reiseplaner</h1>
           </div>
         </div>
@@ -70,7 +75,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         {/* Main Content from pages */}
         <main className="flex-grow flex flex-col items-center justify-center px-4 w-full">
           {children}
-
         </main>
 
         {/* Footer */}
@@ -97,7 +101,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 <li><Link href="/agb#terms">Nutzungsbedingungen</Link></li>
               </ul>
             </div>
-            <div>s
+            <div>
               <h4 className="font-semibold mb-2">Partner</h4>
               <ul className="space-y-1">
                 <li><Link href="/partner">Partner werden</Link></li>
