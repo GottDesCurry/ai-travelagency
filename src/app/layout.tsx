@@ -39,22 +39,23 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="de">
       <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <title>{metadata.title ?? 'AI TravelAgency'}</title>
-        <meta name="description" content={metadata.description} />
-        <meta name="keywords" content={metadata.keywords?.join(', ')} />
-        {/* OpenGraph */}
-        <meta property="og:title" content={metadata.openGraph?.title} />
-        <meta property="og:description" content={metadata.openGraph?.description} />
-        <meta property="og:url" content={metadata.openGraph?.url} />
-        <meta property="og:site_name" content={metadata.openGraph?.siteName} />
-        <meta property="og:type" content={metadata.openGraph?.type} />
-        <meta property="og:locale" content={metadata.openGraph?.locale} />
-        {metadata.openGraph?.images?.map((img, i) => (
-          <meta key={i} property="og:image" content={img.url} />
-        ))}
-      </head>
+		<meta charSet="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>{String(metadata.title ?? 'AI TravelAgency')}</title>
+		<meta name="description" content={String(metadata.description ?? '')} />
+		<meta name="keywords" content={metadata.keywords?.join(', ') ?? ''} />
+		{/* OpenGraph */}
+		<meta property="og:title" content={metadata.openGraph?.title} />
+		<meta property="og:description" content={metadata.openGraph?.description} />
+		<meta property="og:url" content={metadata.openGraph?.url} />
+		<meta property="og:site_name" content={metadata.openGraph?.siteName} />
+		<meta property="og:type" content={metadata.openGraph?.type} />
+		<meta property="og:locale" content={metadata.openGraph?.locale} />
+		{metadata.openGraph?.images?.map((img, i) => (
+		<meta key={i} property="og:image" content={img.url} />
+		))}
+	  </head>
+	  
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased text-gray-800 bg-gradient-to-b from-[#bcd2f7] to-[#d8c7f3] min-h-screen flex flex-col`}>
         {/* Hero Header */}
         <div className="relative flex flex-col items-center justify-center text-center pt-14 pb-6">
