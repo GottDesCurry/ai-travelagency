@@ -13,7 +13,10 @@ export default async function DatenschutzPage() {
 
   return (
     <section className="max-w-5xl mx-auto p-6">
-      <ReactMarkdown className="prose prose-lg">{fileContents}</ReactMarkdown>
+      <div className="prose prose-lg">
+        <ReactMarkdown>{fileContents}</ReactMarkdown>
+      </div>
     </section>
   )
 }
+
