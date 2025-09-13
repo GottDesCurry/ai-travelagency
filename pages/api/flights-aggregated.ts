@@ -27,7 +27,10 @@ export async function GET(req: NextRequest) {
 
   try {
     // Fallback auf Umgebungsvariable z. B. in .env.production
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    const baseUrl =
+  process.env.NEXT_PUBLIC_BASE_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+
 
     const kiwi = await fetch(
       `${baseUrl}/api/flights?provider=kiwi&origin=${origin}&destination=${destination}&date=${date}`
