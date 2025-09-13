@@ -28,14 +28,20 @@ export async function GET(req: NextRequest) {
   try {
     // Fallback auf Umgebungsvariable z. B. in .env.production
     const baseUrl =
-  process.env.NEXT_PUBLIC_BASE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
 
 
-    const kiwi = await fetch(
-      `${baseUrl}/api/flights?provider=kiwi&origin=${origin}&destination=${destination}&date=${date}`
-    )
-    const kiwiData = await kiwi.json()
+    const kiwi = await fetch(...)
+    const kiwiText = await kiwi.text()
+    console.log("KIWI API Antwort:", kiwiText)
+
+    let kiwiData = []
+    try {
+    kiwiData = JSON.parse(kiwiText)
+    } catch (e) {
+    console.error("KIWI JSON Fehler:", e)
+    }
 
     const amadeus = await fetch(
       `${baseUrl}/api/flights?provider=amadeus&origin=${origin}&destination=${destination}&date=${date}`
