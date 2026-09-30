@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "tsc src/lib/travel.ts src/lib/search-provider.ts --outDir .test-build --target ES2022 --module commonjs --skipLibCheck && node tests/travel.test.cjs"
+    "test": "tsc src/lib/travel.ts src/lib/search-provider.ts src/lib/itinerary.ts src/lib/saved-trip.ts --outDir .test-build --target ES2022 --module commonjs --skipLibCheck && node tests/travel.test.cjs"
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.16",

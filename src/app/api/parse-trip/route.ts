@@ -9,6 +9,8 @@ type ParsedTrip = {
   date: string | null
   returnDate: string | null
   people: number | null
+  budget: number | null
+  interests: string[] | null
 }
 
 export async function POST(req: NextRequest) {
@@ -26,7 +28,9 @@ Extrahiere folgende Informationen aus dem Text:
 - Zielort (destination)
 - Hinflugdatum (date)
 - Rückflugdatum (returnDate), wenn vorhanden
-- Anzahl Personen (people), wenn erwähnt
+- Anzahl erwachsener Personen (people), wenn erwähnt
+- Gesamtbudget in CHF für alle Reisenden (budget), falls eindeutig erwähnt. Bei anderen Währungen ohne Umrechnung null.
+- Interessen (interests) als Liste aus Strand, Essen & Kultur, Natur, Städtetrip, Abenteuer, Entspannung.
 
 Gib nur folgendes JSON zurück:
 {
@@ -34,7 +38,9 @@ Gib nur folgendes JSON zurück:
   "destination": "...",
   "date": "YYYY-MM-DD",
   "returnDate": "YYYY-MM-DD",
-  "people": 1
+  "people": 1,
+  "budget": null,
+  "interests": []
 }
 Wenn du etwas nicht findest, gib einen leeren String oder null zurück.
 Behebe einfache Rechtschreibfehler oder Erkennungsprobleme automatisch, z. B. bei Städtenamen.`
@@ -52,7 +58,7 @@ Behebe einfache Rechtschreibfehler oder Erkennungsprobleme automatisch, z. B. 
     })
 
     const parsed: ParsedTrip = JSON.parse(chatResponse.choices[0].message.content || '{}')
-    const { date, returnDate, origin, destination, people } = parsed
+    const { date, returnDate, origin, destination, people, budget, interests } = parsed
 
     return NextResponse.json({
       origin: typeof origin === 'string' ? origin : null,
@@ -60,6 +66,8 @@ Behebe einfache Rechtschreibfehler oder Erkennungsprobleme automatisch, z. B. 
       date: typeof date === 'string' ? date : null,
       returnDate: typeof returnDate === 'string' ? returnDate : null,
       people: typeof people === 'number' ? people : null,
+      budget: typeof budget === 'number' && Number.isFinite(budget) && budget > 0 ? budget : null,
+      interests: Array.isArray(interests) ? interests.filter(item => typeof item === 'string').slice(0, 6) : null,
     })
   } catch (err) {
     console.error('❌ Fehler beim Parsen der Reiseinformationen:', err)

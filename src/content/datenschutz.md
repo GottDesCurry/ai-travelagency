@@ -24,6 +24,12 @@ Wir geben Ihre Daten nur weiter, wenn:
 **5. Cookies und Tracking**
 Unsere Website verwendet nur technisch notwendige Cookies. Eine weitergehende Analyse Ihres Nutzerverhaltens erfolgt nicht ohne ausdrückliche Zustimmung.
 
+**Lokale Speicherung deines Reiseplans**
+Wenn du „Reise auf diesem Gerät speichern“ auswählst, werden deine Reisedaten, gemerkten Angebote und der Tagesplan im lokalen Speicher dieses Browsers abgelegt. Diese Speicherung wird nicht zwischen Geräten synchronisiert. Du kannst sie unter „Meine Reise“ löschen. Die Fluganimation merkt sich für die aktuelle Browser-Sitzung, ob sie bereits angezeigt wurde.
+
+**KI-Reiseplanung**
+Wenn du einen Reisewunsch interpretieren oder einen KI-Tagesplan erstellen lässt, werden die dafür erforderlichen Reiseangaben (zum Beispiel Ziel, Zeitraum, Personenanzahl, Budget und Interessen) an den KI-Dienst OpenAI übermittelt. Gib keine sensiblen personenbezogenen Informationen in den Reisewunsch ein. Externe Buchungs- und Suchlinks öffnen die Websites der jeweiligen Anbieter.
+
 **6. Speicherdauer**
 Personenbezogene Daten werden nur so lange gespeichert, wie es für die genannten Zwecke erforderlich ist oder eine gesetzliche Pflicht dazu besteht.
 
@@ -44,4 +50,5 @@ Diese Erklärung kann angepasst werden. Die aktuelle Fassung ist jederzeit unter
 
 ---
 Letzte Aktualisierung: 01.08.2025
+
 

@@ -1,5 +1,10 @@
 'use client'
 
+import Link from 'next/link'
+import FlightIntro, { Plane } from '@/components/FlightIntro'
+import ItineraryView from '@/components/ItineraryView'
+import type { Itinerary } from '@/lib/itinerary'
+import { TRIP_KEY, SavedTrip } from '@/lib/saved-trip'
 import { useState } from 'react'
 import iataCodes from '@/data/iata-codes.json'
 import FlightCard from '@/components/FlightCard'
@@ -18,10 +23,19 @@ function airportCode(input: string) {
   return iataCodes.find(item => item.city.toLowerCase() === normalized || item.code.toLowerCase() === normalized)?.code ?? (/^[a-z]{3}$/i.test(normalized) ? normalized.toUpperCase() : null)
 }
 function hotelCity(input: string) {
-  return iataCodes.find(item => item.code === input.trim().toUpperCase())?.city ?? input.trim()
+  const knownCities: Record<string, string> = { LIS: 'Lisbon', BCN: 'Barcelona', KEF: 'Reykjavik', ZRH: 'Zurich', BER: 'Berlin' }
+  return knownCities[input.trim().toUpperCase()] ?? iataCodes.find(item => item.code === input.trim().toUpperCase())?.city ?? input.trim()
 }
 
 export default function Home() {
+  const [budget, setBudget] = useState('')
+  const [interests, setInterests] = useState<string[]>([])
+  const [selectedFlight, setSelectedFlight] = useState<Flight | null>(null)
+  const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null)
+  const [itinerary, setItinerary] = useState<Itinerary | null>(null)
+  const [planning, setPlanning] = useState(false)
+  const [saveMessage, setSaveMessage] = useState('')
+  const [resultTrip, setResultTrip] = useState<{ origin: string; destination: string; date: string; returnDate: string; people: string; budget: string; interests: string[] } | null>(null)
   const [origin, setOrigin] = useState('ZRH')
   const [destination, setDestination] = useState('BER')
   const [date, setDate] = useState('')
@@ -39,11 +53,12 @@ export default function Home() {
   async function handleSearch() {
     if (loading) return
     setLoading(true)
+    setSelectedFlight(null); setSelectedHotel(null); setItinerary(null); setSaveMessage(''); setResultTrip(null)
     setErrors([])
     setSearched({ flights: false, hotels: false })
     setFlightResults([])
     setHotelResults([])
-    let trip = { origin, destination, date, returnDate, people }
+    let trip = { origin, destination, date, returnDate, people, budget, interests }
     try {
       if (!searchFlights && !searchHotels) throw new Error('Bitte wähle Flüge oder Hotels aus.')
       if (prompt.trim()) {
@@ -54,9 +69,12 @@ export default function Home() {
           date: parsed.date || date,
           returnDate: parsed.returnDate || returnDate,
           people: parsed.people == null ? people : String(parsed.people),
+          budget: parsed.budget == null ? budget : String(parsed.budget),
+          interests: Array.isArray(parsed.interests) && parsed.interests.length ? parsed.interests.filter((item: unknown) => typeof item === 'string') : interests,
         }
-        setOrigin(trip.origin); setDestination(trip.destination); setDate(trip.date); setReturnDate(trip.returnDate); setPeople(trip.people)
+        setOrigin(trip.origin); setDestination(trip.destination); setDate(trip.date); setReturnDate(trip.returnDate); setPeople(trip.people); setBudget(trip.budget); setInterests(trip.interests)
       }
+      if (trip.budget && (!Number.isFinite(Number(trip.budget)) || Number(trip.budget) <= 0 || Number(trip.budget) > 1000000)) throw new Error('Bitte gib ein gültiges Gesamtbudget in CHF ein.')
       const adults = validateAdults(trip.people)
       validateDates(trip.date, trip.returnDate, searchHotels)
       const from = airportCode(trip.origin)
@@ -80,43 +98,57 @@ export default function Home() {
           setHotelResults(data.results); setSearched(previous => ({ ...previous, hotels: true }))
         }).catch(error => { setErrors(previous => [...previous, `Hotels: ${error.message}`]) }))
       }
+      setResultTrip({ ...trip, interests: [...trip.interests] })
       await Promise.all(jobs)
     } catch (error) {
       setErrors([error instanceof Error ? error.message : 'Die Suche ist fehlgeschlagen.'])
     } finally { setLoading(false) }
   }
 
-  const inputClass = 'w-full px-4 py-2 rounded border border-gray-300'
-  return (
-    <div className="flex flex-col items-center px-4 space-y-8 w-full py-8">
-      <form onSubmit={event => { event.preventDefault(); void handleSearch() }} className="bg-white shadow-lg rounded-xl p-6 max-w-xl w-full space-y-5">
-        <fieldset disabled={loading} className="space-y-5">
-          <legend className="text-xl mb-4">Deine Reise planen</legend>
-          <label className="block">Reisewunsch (optional)
-            <textarea value={prompt} onChange={event => setPrompt(event.target.value)} placeholder="Zum Beispiel: Zwei Erwachsene von Zürich nach Berlin vom 10. bis 14. November" className={inputClass} rows={3} />
-          </label>
-          <p className="text-sm text-gray-500">Die KI ergänzt die Felder aus deinem Text. Für die manuelle Suche kannst du dieses Feld leer lassen.</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <label>Abflugort / Flughafen-Code<input value={origin} onChange={event => setOrigin(event.target.value)} className={inputClass} /></label>
-            <label>Reiseziel<input value={destination} onChange={event => setDestination(event.target.value)} className={inputClass} /></label>
-            <label>Hinflug / Check-in<input type="date" min={todayISO()} value={date} onChange={event => setDate(event.target.value)} className={inputClass} /></label>
-            <label>Rückflug / Check-out<input type="date" min={date || todayISO()} value={returnDate} onChange={event => setReturnDate(event.target.value)} className={inputClass} /></label>
-          </div>
-          <label className="block">Erwachsene (1–9)<input type="number" min={1} max={9} step={1} value={people} onChange={event => setPeople(event.target.value)} className={inputClass} /></label>
-          <p className="text-sm text-gray-500">Hotels: ein Zimmer für alle Erwachsenen. Check-out muss nach Check-in liegen.</p>
-          <div className="flex gap-6">
-            <label><input type="checkbox" checked={searchFlights} onChange={event => setSearchFlights(event.target.checked)} /> Flüge suchen</label>
-            <label><input type="checkbox" checked={searchHotels} onChange={event => setSearchHotels(event.target.checked)} /> Hotels suchen</label>
-          </div>
-          <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-2 rounded disabled:opacity-50">{loading ? 'Suche läuft …' : 'Reise suchen'}</button>
-        </fieldset>
-        {errors.length > 0 && <div role="alert" className="bg-red-50 text-red-800 rounded p-4">{errors.map((error, index) => <p key={index}>{error}</p>)}</div>}
-      </form>
-      <div aria-live="polite" className="w-full max-w-3xl space-y-6">
-        {loading && <p>Wir suchen passende Angebote …</p>}
-        {searched.flights && <section className="space-y-4"><h2 className="text-2xl">Flugangebote ({flightResults.length})</h2><p className="text-sm text-gray-500">Preise laut Anbieter. Verfügbarkeit und endgültigen Preis vor der Buchung prüfen.</p>{flightResults.length ? flightResults.map(flight => <FlightCard key={flight.id} flight={flight} />) : <p>Keine passenden Flüge gefunden.</p>}</section>}
-        {searched.hotels && <section className="space-y-4"><h2 className="text-2xl">Hotelangebote ({hotelResults.length})</h2><p className="text-sm text-gray-500">Preise laut Anbieter für den angefragten Aufenthalt. Steuern und Gebühren vor der Buchung prüfen.</p>{hotelResults.length ? hotelResults.map(hotel => <HotelCard key={hotel.id} hotel={hotel} />) : <p>Keine passenden Hotels gefunden.</p>}</section>}
-      </div>
-    </div>
-  )
+  async function createPlan() {
+    if (!resultTrip) return
+    setPlanning(true); setErrors([])
+    try {
+      const plan = await requestJSON('/api/itinerary', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...resultTrip, destination: hotelCity(resultTrip.destination) }) })
+      setItinerary(plan); setSaveMessage('')
+    } catch (error) { setErrors([error instanceof Error ? error.message : 'Der Reiseplan konnte nicht erstellt werden.']) }
+    finally { setPlanning(false) }
+  }
+  function saveTrip() {
+    if (!resultTrip) return
+    const trip: SavedTrip = { version: 1, savedAt: new Date().toISOString(), ...resultTrip, flight: selectedFlight, hotel: selectedHotel, itinerary }
+    try { localStorage.setItem(TRIP_KEY, JSON.stringify(trip)); setSaveMessage('Gespeichert. Deine Reise findest du unter „Meine Reise“.') }
+    catch { setSaveMessage('Speichern ist auf diesem Gerät nicht möglich. Du kannst den Tagesplan drucken.') }
+  }
+  function chooseDestination(code: string, themes: string[]) {
+    setDestination(code); setInterests(themes); setPrompt('')
+    document.getElementById('reise-suche')?.scrollIntoView({ behavior: 'smooth' })
+  }
+  const inputClass = 'travel-input'
+  const activeDestination = resultTrip?.destination || destination
+  const airbnbUrl = `https://www.airbnb.com/s/${encodeURIComponent(hotelCity(activeDestination))}/homes`
+  return <>
+    <FlightIntro />
+    <section className="hero"><div><p className="eyebrow">DEINE IDEE. DEINE REISE. DEINE KI.</p><h1>Weniger planen.<br/><em>Mehr erleben.</em></h1><p className="hero-copy">Ein Wochenende am Meer. Eine neue Lieblingsstadt. Oder einfach mal raus. Beschreibe deinen Wunsch – wir helfen dir, deine Reise zusammenzustellen.</p><a href="#reise-suche" className="hero-cta">Meine Reise beginnt hier <span>↗</span></a><p className="hero-note">FLÜGE · UNTERKÜNFTE · DEIN PERSÖNLICHER TAGESPLAN</p></div><div className="sky-card" aria-hidden="true"><div className="sky-sun"/><div className="sky-cloud cloud-a"/><div className="sky-cloud cloud-b"/><Plane className="hero-plane"/><div className="sky-ticket"><small>DEIN NÄCHSTES KAPITEL</small>Zürich &nbsp; ─── ✦ ─── &nbsp; Irgendwo neu</div><div className="sky-caption"><span>TAKE A LITTLE TIME OFF.</span><span>01 / ∞</span></div></div></section>
+    <section id="reise-suche" className="section-wrap"><div className="section-heading"><div><p className="eyebrow">VON DER IDEE ZUM REISEPLAN</p><h2>Wohin zieht es dich?</h2></div><p>Dein Tempo. Deine Interessen. Dein Budget.</p></div>
+      <div className="planner-card planner-grid"><form onSubmit={event => { event.preventDefault(); void handleSearch() }} className="planner-form"><fieldset disabled={loading || planning} className="planner-form"><legend className="sr-only">Reisedaten</legend>
+        <label><span className="field-label">Erzähl uns von deiner Reise</span><textarea value={prompt} onChange={event => setPrompt(event.target.value)} placeholder="Zum Beispiel: Zwei Erwachsene ab Zürich, fünf Tage in Lissabon im November. Wir mögen gutes Essen und das Meer." className={`${inputClass} prompt-field`} rows={3}/></label>
+        <p className="form-note">Die KI ergänzt deine Reisedaten. Du kannst die Felder auch selbst ausfüllen. Budget und Interessen kannst du unten ergänzen.</p>
+        <div className="field-grid"><label><span className="field-label">Von</span><input value={origin} onChange={event => setOrigin(event.target.value)} className={inputClass} placeholder="ZRH / Zürich"/></label><label><span className="field-label">Nach</span><input value={destination} onChange={event => setDestination(event.target.value)} className={inputClass} placeholder="Reiseziel"/></label><label><span className="field-label">Hinflug / Check-in</span><input type="date" min={todayISO()} value={date} onChange={event => setDate(event.target.value)} className={inputClass}/></label><label><span className="field-label">Rückflug / Check-out</span><input type="date" min={date || todayISO()} value={returnDate} onChange={event => setReturnDate(event.target.value)} className={inputClass}/></label><label><span className="field-label">Erwachsene</span><input type="number" min={1} max={9} step={1} value={people} onChange={event => setPeople(event.target.value)} className={inputClass}/></label><label><span className="field-label">Gesamtbudget CHF · optional</span><input type="number" min={1} max={1000000} value={budget} onChange={event => setBudget(event.target.value)} placeholder="Für alle Reisenden" className={inputClass}/></label></div>
+        <div><span className="field-label">Was macht deine Reise besonders?</span><div className="interest-list">{['Strand', 'Essen & Kultur', 'Natur', 'Städtetrip', 'Abenteuer', 'Entspannung'].map(interest => <button key={interest} type="button" aria-pressed={interests.includes(interest)} className="interest-chip" onClick={() => setInterests(previous => previous.includes(interest) ? previous.filter(item => item !== interest) : [...previous, interest])}>{interest}</button>)}</div></div>
+        <div className="search-options"><label><input type="checkbox" checked={searchFlights} onChange={event => setSearchFlights(event.target.checked)}/> Flüge</label><label><input type="checkbox" checked={searchHotels} onChange={event => setSearchHotels(event.target.checked)}/> Unterkünfte</label></div>
+        <p className="form-note">Unterkünfte: ein Zimmer für alle Erwachsenen. Für die Hotelsuche brauchst du ein Check-out-Datum.</p>
+        <button type="submit" disabled={loading || planning} className="primary-button">{loading ? 'Deine Angebote werden gesucht …' : 'Passende Angebote finden'} <span>↗</span></button>
+      </fieldset>{errors.length > 0 && <div role="alert" className="notice">{errors.map((error,index) => <p key={index}>{error}</p>)}</div>}</form>
+      <aside className="planner-sidebar"><p className="eyebrow">ALLES IM BLICK</p><h3>Eine Reise.<br/>Viele Möglichkeiten.</h3><div className="sidebar-step"><span>1</span>Reisewunsch beschreiben</div><div className="sidebar-step"><span>2</span>Flug & Unterkunft auswählen</div><div className="sidebar-step"><span>3</span>Persönlichen Tagesplan erstellen</div><p className="sidebar-rule">Du entscheidest, was zu dir passt. Angebote buchst du aktuell direkt beim jeweiligen Anbieter.</p></aside></div>
+    </section>
+    {resultTrip && <section className="section-wrap"><div className="section-heading"><h2>Deine Reise nimmt Form an.</h2><p>{hotelCity(resultTrip.destination)} · {resultTrip.people} Erwachsene</p></div><div className="results-layout"><div className="result-group" aria-live="polite">
+      {loading && <p>Wir suchen deine Angebote …</p>}
+      {searched.flights && <section className="result-group"><h3 className="text-xl">Flüge · {flightResults.length} Angebote</h3><p className="subtle-note">Preise laut Anbieter. Verfügbarkeit und endgültigen Preis vor der Buchung prüfen.</p>{flightResults.length ? flightResults.map(flight => <div key={flight.id}><FlightCard flight={flight}/><button className={`secondary-button offer-select ${selectedFlight?.id === flight.id ? 'chosen' : ''}`} aria-pressed={selectedFlight?.id === flight.id} onClick={() => { setSelectedFlight(selectedFlight?.id === flight.id ? null : flight); setSaveMessage('') }}>{selectedFlight?.id === flight.id ? '✓ In deiner Reise · entfernen' : 'Diesen Flug merken'}</button></div>) : <p>Keine passenden Flüge gefunden.</p>}</section>}
+      {searched.hotels && <section className="result-group"><h3 className="text-xl">Unterkünfte · {hotelResults.length} Angebote</h3><p className="subtle-note">Preise für den angefragten Aufenthalt laut Anbieter. Steuern und Gebühren vor der Buchung prüfen.</p>{hotelResults.length ? hotelResults.map(hotel => <div key={hotel.id}><HotelCard hotel={hotel}/><button className={`secondary-button offer-select ${selectedHotel?.id === hotel.id ? 'chosen' : ''}`} aria-pressed={selectedHotel?.id === hotel.id} onClick={() => { setSelectedHotel(selectedHotel?.id === hotel.id ? null : hotel); setSaveMessage('') }}>{selectedHotel?.id === hotel.id ? '✓ In deiner Reise · entfernen' : 'Diese Unterkunft merken'}</button></div>) : <p>Keine passenden Unterkünfte gefunden.</p>}</section>}
+      <div className="day-card"><h3>Lieber eine Ferienwohnung?</h3><p className="subtle-note">Entdecke weitere Unterkünfte auf Airbnb. Die Suche öffnet eine externe Seite; Angebote werden nicht in Book Repeat importiert.</p><a href={airbnbUrl} target="_blank" rel="noopener noreferrer" className="secondary-button">Auf Airbnb suchen ↗</a></div>
+    </div><aside className="trip-panel no-print"><p className="eyebrow text-white">DEINE REISE</p><h3>{hotelCity(resultTrip.destination)}</h3><p>{resultTrip.date}{resultTrip.returnDate ? ` bis ${resultTrip.returnDate}` : ''}<br/>{resultTrip.people} Erwachsene{resultTrip.budget ? <><br/>Wunschbudget: {resultTrip.budget} CHF</> : null}</p><p>{selectedFlight ? '✓ Flug gemerkt' : '○ Flug auswählen'}<br/>{selectedHotel ? '✓ Unterkunft gemerkt' : '○ Unterkunft auswählen'}</p><p>Preise der Anbieter sind noch nicht als gemeinsame Gesamtkosten bestätigt. Deine Auswahl ist keine Buchung.</p><button disabled={loading || planning} onClick={createPlan}>{planning ? 'Dein Tagesplan entsteht …' : 'KI-Tagesplan erstellen'}</button><button disabled={loading || planning} onClick={saveTrip}>Reise auf diesem Gerät speichern</button><p>Speichert die aktuelle Reise im Browser. Eine vorherige Reise wird ersetzt.</p>{saveMessage && <p role="status">{saveMessage}</p>}<Link href="/meine-reise">Meine gespeicherte Reise ↗</Link></aside></div></section>}
+    {itinerary && <section className="section-wrap"><div className="section-heading"><h2>Deine Tage. Dein Rhythmus.</h2><button className="secondary-button no-print" onClick={() => window.print()}>Reiseplan drucken</button></div><ItineraryView itinerary={itinerary}/></section>}
+    <section id="entdecken" className="section-wrap"><div className="section-heading"><div><p className="eyebrow">EIN BISSCHEN FERNWEH</p><h2>Worauf hast du Lust?</h2></div><p>Inspiration wählen und deine Reisedaten ergänzen.</p></div><div className="destinations"><button className="destination dest-coast" onClick={() => chooseDestination('LIS', ['Strand', 'Essen & Kultur'])}><span className="destination-icon" aria-hidden="true">☀</span><small>01 / AM MEER</small><h3>Lissabon</h3><p>Salzige Luft. Kleine Gassen.<br/>Und Zeit für einen Pastel de Nata.</p></button><button className="destination dest-city" onClick={() => chooseDestination('BCN', ['Städtetrip', 'Essen & Kultur'])}><span className="destination-icon" aria-hidden="true">◈</span><small>02 / IN DER STADT</small><h3>Barcelona</h3><p>Architektur, Tapas und<br/>ein Abend am Mittelmeer.</p></button><button className="destination dest-nature" onClick={() => chooseDestination('KEF', ['Natur', 'Abenteuer'])}><span className="destination-icon" aria-hidden="true">△</span><small>03 / DRAUSSEN</small><h3>Island</h3><p>Weite Landschaften.<br/>Für deine nächste Auszeit.</p></button></div></section>
+  </>
 }

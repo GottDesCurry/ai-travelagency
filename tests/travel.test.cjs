@@ -58,3 +58,21 @@ test('provider errors, invalid JSON and unknown schemas remain errors, empty res
  assert.deepEqual(travel.normalizeFlights({ data: [] }), [])
  assert.equal(travel.safeUrl('javascript:alert(1)'), null)
 })
+const plans = require('../.test-build/itinerary.js')
+const saved = require('../.test-build/saved-trip.js')
+test('day plan validates duration, group budget and model response', () => {
+ const trip = plans.validatePlanRequest({ destination: 'Berlin', date: '2030-01-01', returnDate: '2030-01-03', people: '2', budget: '1000', interests: ['Natur'] })
+ assert.equal(trip.days, 3); assert.equal(trip.budget, 1000)
+ assert.throws(() => plans.validatePlanRequest({ ...trip, returnDate: '2030-02-01' }), /14 Tage/)
+ assert.throws(() => plans.validatePlanRequest({ ...trip, budget: '-2' }), /Gesamtbudget/)
+ assert.throws(() => plans.readItinerary({ summary: 'Plan', days: [], tips: [] }, 3), /vollständig/)
+ const day = { day: 1, title: 'Ankommen', morning: 'Anreise', afternoon: 'Spaziergang', evening: 'Essen' }
+ assert.equal(plans.readItinerary({ summary: 'Plan', days: [day], tips: [] }, 1).days[0].title, 'Ankommen')
+ assert.throws(() => plans.readItinerary({ summary: 'Plan', days: [{ ...day, day: 2 }], tips: [] }, 1), /unvollständig/)
+})
+test('saved trips reject malformed offers and preserve valid selections', () => {
+ const trip = { version: 1, savedAt: '2030-01-01', destination: 'Berlin', origin: 'ZRH', date: '2030-01-01', returnDate: '2030-01-03', people: '2', budget: '1000', interests: ['Natur'], flight: travel.normalizeFlights({ data: [offer] })[0], hotel: null, itinerary: null }
+ assert.equal(saved.parseSavedTrip(trip).flight.price, 250.4)
+ assert.equal(saved.parseSavedTrip({ ...trip, flight: { price: 2 } }), null)
+ assert.equal(saved.parseSavedTrip({ ...trip, people: '0' }), null)
+})

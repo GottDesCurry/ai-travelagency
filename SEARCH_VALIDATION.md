@@ -45,3 +45,22 @@ nicht ausreichend. Diese Reparatur erhält die bisherigen Provider-Endpunkte und
 Parameternamen und behandelt abweichende Schemas explizit als Fehler. Ohne Zugriff
 auf den abonnierten Playground und echte Antworten ist die Provider-Integration
 noch nicht live verifiziert. Es wurden keine Preise oder Buchungslinks erfunden.
+
+## Erweiterte Website
+
+- Die Startseite zeigt eine überspringbare Flugzeug-/Wolkenanimation einmal pro
+  Browser-Sitzung. Bei reduzierter Bewegung wird sie ausgelassen.
+- Budget und Interessen werden für den KI-Tagesplan verwendet; die Angebotssuche
+  garantiert keine Reise innerhalb des Budgets und ermittelt keinen Paketpreis.
+- `/api/itinerary` benötigt den OpenAI-Schlüssel und erstellt Vorschläge für maximal
+  14 Reisetage. Aktivitätsvorschläge sind keine live geprüften Angebote oder Buchungen.
+- „Meine Reise“ speichert genau eine Reise lokal in diesem Browser. Eine neue
+  Speicherung ersetzt die vorherige; Löschen und Drucken sind möglich.
+- Airbnb öffnet eine externe Suche. Es gibt keinen Import von Airbnb-Angeboten,
+  keinen Airbnb-Checkout und keine behauptete Partnerschaft.
+- Eine direkte Buchung, Zahlung, Stornierungsverwaltung und geräteübergreifende
+  Konten sind noch nicht implementiert. Anbieter-Verträge und die Buchungsabwicklung
+  müssen vor einer solchen Erweiterung festgelegt werden.
+- `tests/browser-smoke.cjs` prüft die Benutzerabläufe mit simulierten Suchantworten.
+  Beispiel: `PLAYWRIGHT_MODULE=/path/to/playwright node tests/browser-smoke.cjs` bei
+  laufendem Produktionsserver auf Port 3100. `TEST_BASE_URL` überschreibt die URL.
