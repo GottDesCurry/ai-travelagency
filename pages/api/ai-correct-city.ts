@@ -5,9 +5,7 @@ import OpenAI from 'openai'
 type CorrectCityRequest = { input: string }
 type CorrectCityResponse = { corrected?: string; error?: string }
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-})
+
 
 export default async function handler(
   req: NextApiRequest,
@@ -24,6 +22,8 @@ export default async function handler(
   }
 
   try {
+    if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'Die KI ist noch nicht eingerichtet.' })
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
@@ -45,3 +45,4 @@ export default async function handler(
     return res.status(500).json({ error: 'Interner Fehler bei der GPT-Verarbeitung.' })
   }
 }
+
