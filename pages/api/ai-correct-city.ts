@@ -5,10 +5,6 @@ import OpenAI from 'openai'
 type CorrectCityRequest = { input: string }
 type CorrectCityResponse = { corrected?: string; error?: string }
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-})
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<CorrectCityResponse>
@@ -24,7 +20,7 @@ export default async function handler(
   }
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await new OpenAI({ apiKey: process.env.OPENAI_API_KEY }).chat.completions.create({
       model: 'gpt-4o',
       messages: [
         {

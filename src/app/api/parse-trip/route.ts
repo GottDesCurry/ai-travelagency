@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
-
 type ParsedTrip = {
   origin: string | null
   destination: string | null
@@ -48,7 +46,7 @@ Wenn du etwas nicht findest, gib einen leeren String oder null zurück.
 Behebe einfache Rechtschreibfehler oder Erkennungsprobleme automatisch, z. B. bei Städtenamen.`
 
   try {
-    const chatResponse = await openai.chat.completions.create({
+    const chatResponse = await new OpenAI({ apiKey: process.env.OPENAI_API_KEY }).chat.completions.create({
       model: 'gpt-4',
       messages: [
         { role: 'system', content: systemPrompt },

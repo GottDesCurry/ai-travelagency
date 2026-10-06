@@ -6,7 +6,6 @@ import axios from 'axios'
 const RAPID_API_KEY = process.env.RAPIDAPI_KEY || ''
 const API_HOST = 'booking-com18.p.rapidapi.com'
 const BASE_URL = `https://${API_HOST}`
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
 
 // In-Memory Cache für korrigierte Städtenamen
 const cityCorrectionCache = new Map<string, string>()
@@ -77,7 +76,7 @@ async function getCorrectedCity(input: string): Promise<string> {
   const prompt = `Du bist ein Reiseassistent. Korrigiere Rechtschreibfehler und gib nur den englischen Namen der Stadt zurück.\n\nEingabe: "${input}"\nAusgabe:`
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await new OpenAI({ apiKey: process.env.OPENAI_API_KEY }).chat.completions.create({
       model: 'gpt-4',
       messages: [
         { role: 'system', content: 'Du bist ein hilfreicher KI-Reiseassistent.' },

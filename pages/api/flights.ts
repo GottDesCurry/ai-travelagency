@@ -6,7 +6,6 @@ import OpenAI from 'openai'
 const API_HOST = 'booking-com18.p.rapidapi.com'
 const BASE_URL = `https://${API_HOST}`
 const RAPID_API_KEY = process.env.RAPIDAPI_KEY || ''
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
 
 function reduceFlightData(data: any): any[] {
   return data?.data?.slice(0, 15).map((flight: any) => ({
@@ -50,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const prompt = `Wähle aus diesen Flugangeboten die 3 besten aus. Kriterien: Günstigster Preis, gute Flugzeiten, möglichst wenig Stopps. Antworte im JSON-Array mit den besten 3 Flügen:\n\n${JSON.stringify(reduced)}`
 
-    const gptResponse = await openai.chat.completions.create({
+    const gptResponse = await new OpenAI({ apiKey: process.env.OPENAI_API_KEY }).chat.completions.create({
       model: 'gpt-4',
       messages: [
         { role: 'system', content: 'Du bist ein intelligenter Reiseberater.' },
