@@ -1,8 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
-
 interface Flight {
   id: string;
   price: number;
@@ -73,7 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const prompt = `Wähle aus diesen Flugangeboten die 3 besten aus. Kriterien: Günstigster Preis, gute Flugzeiten, möglichst wenig Stopps. Antworte im JSON-Array mit den besten 3 Flügen:\n\n${JSON.stringify(reducedFlights)}`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await new OpenAI({ apiKey: process.env.OPENAI_API_KEY }).chat.completions.create({
       model: 'gpt-4',
       messages: [
         { role: 'system', content: 'Du bist ein intelligenter Reiseberater.' },
