@@ -3,8 +3,10 @@
 
 import React from 'react'
 import Image from 'next/image'
+import BookingLink from './BookingLink'
+import type { FlightOffer } from '@/lib/flight-offers'
 
-export default function FlightCard({ flight }: { flight: any }) {
+export default function FlightCard({ flight }: { flight: FlightOffer }) {
   if (!flight || Object.keys(flight).length === 0) {
     return (
       <div className="text-center text-sm text-gray-600 border border-gray-200 bg-white/70 backdrop-blur-md rounded-xl p-5">
@@ -25,6 +27,7 @@ export default function FlightCard({ flight }: { flight: any }) {
       <div className="flex items-center gap-4 w-full md:w-1/3">
         <Image
           src={logoUrl}
+          unoptimized
           alt={flight.airline}
           width={50}
           height={50}
@@ -49,13 +52,7 @@ export default function FlightCard({ flight }: { flight: any }) {
         <div className="bg-green-100 text-green-700 px-4 py-2 rounded-lg text-xl font-bold">
           {flight.price} {flight.currency}
         </div>
-        <a
-          href={flight.bookingLink}
-          target="_blank"
-          className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm transition"
-        >
-          🔗 Jetzt buchen
-        </a>
+        <BookingLink url={flight.bookingLink} label="Zum Flugangebot" />
       </div>
     </div>
   )
