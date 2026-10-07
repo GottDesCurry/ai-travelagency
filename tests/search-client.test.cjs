@@ -26,3 +26,20 @@ test('ranking cannot change original prices or invent offers',async()=>{
  const previous=global.fetch
  try{global.fetch=async url=>({ok:true,json:async()=>url.startsWith('/api/flights')?[offer]:[{...offer,price:1}]});assert.equal((await client.loadFlights(''))[0].price,100)}finally{global.fetch=previous}
 })
+test('caller cancellation aborts HTTP and keeps its reason distinct from timeout',async()=>{
+ const previous=global.fetch
+ try {
+  let calls=0
+  global.fetch=async(url,{signal})=>{calls++;return new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(new Error('aborted'))))}
+  const controller=new AbortController();const pending=client.requestJson('/api/test',{signal:controller.signal});controller.abort()
+  await assert.rejects(pending,/abgebrochen/)
+  await assert.rejects(client.requestJson('/api/test',{signal:controller.signal}),/abgebrochen/);assert.equal(calls,1)
+ }finally{global.fetch=previous}
+})
+test('cancelling AI ranking does not restore already cancelled flight results',async()=>{
+ const previous=global.fetch,controller=new AbortController()
+ try {
+  global.fetch=async(url,{signal})=>url.startsWith('/api/flights')?{ok:true,json:async()=>[offer]}:new Promise((resolve,reject)=>{signal.addEventListener('abort',()=>reject(new Error('aborted')));controller.abort()})
+  await assert.rejects(client.loadFlights('',controller.signal),/abgebrochen/)
+ }finally{global.fetch=previous}
+})

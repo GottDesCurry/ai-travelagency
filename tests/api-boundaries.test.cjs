@@ -27,13 +27,13 @@ test('flight provider receives dates and adults; unexpected envelopes produce 50
 })
 test('legacy flight endpoint rejects malformed JSON and shares the validated search contract',async()=>{
  let forwarded
- const route=load('src/app/api/flights-booking/route.ts',{...server,'../../../lib/flight-search':{searchFlights:async(q)=>{forwarded=q;return {status:200,body:[]}}}})
+ const route=load('app/api/flights-booking/route.ts',{...server,'@/lib/flight-search':{searchFlights:async(q)=>{forwarded=q;return {status:200,body:[]}}}})
  assert.equal((await route.POST({json:async()=>{throw Error()}})).status,400)
  assert.equal((await route.POST({json:async()=>null})).status,400)
  const response=await route.POST({json:async()=>({...query,adults:4})});assert.equal(response.status,200);assert.equal(forwarded.adults,'4');assert.equal(forwarded.returnDate,query.returnDate)
 })
 test('hotel location encodes names and distinguishes empty, bad and missing configuration responses',async()=>{
- const route=load('src/app/api/hotels-location/route.ts',server), old=global.fetch
+ const route=load('app/api/hotels-location/route.ts',server), old=global.fetch
  try {
   await withKey(undefined,async()=>assert.equal((await route.GET({url:'https://local/api?name=Berlin'})).status,503))
   await withKey('test',async()=>{

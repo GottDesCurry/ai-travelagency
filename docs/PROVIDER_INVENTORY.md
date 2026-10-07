@@ -8,7 +8,7 @@
 | /api/parse-trip | OpenAI gpt-4 | Reiseangaben aus Text | 4000 Zeichen, 15 s Timeout, keine Retries, serverseitige Prüfung der Ausgabe |
 | /api/ai-correct-city | OpenAI gpt-4o | Optionaler Ortskorrekturvorschlag | 120 Zeichen, 15 s Timeout, keine Retries |
 | /api/ai | OpenAI gpt-4o | Reihenfolge vorhandener Flugangebote | Höchstens 15 Angebote; KI darf nur vorhandene IDs auswählen; Fallback bewahrt Originalangebote |
-| src/app/page.tsx | Eigene /api-Routen | Suche aus Formular | Anbieterangebote werden erst nach Serverantwort angezeigt |
+| app/page.tsx | Eigene /api-Routen | Suche aus Formular | Anbieterangebote werden erst nach Serverantwort angezeigt |
 
 Alle RapidAPI-Verträge sind anhand des jeweiligen aktiven Produkts zu bestätigen. Gleiche Markennamen auf RapidAPI bedeuten nicht denselben API-Vertrag oder autorisierte Direktbuchungen. Der konkrete Suchpfad und die Response-Envelope sind noch nicht mit Live-Zugang geprüft.
 

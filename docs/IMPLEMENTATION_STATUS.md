@@ -4,17 +4,26 @@ Stand: 7. Oktober 2026. Verbindliche Aufgabenliste: [MASTERPLAN.md](MASTERPLAN.m
 
 ## Abgeschlossen und lokal geprüft
 
-- T001: Next.js 15.3.9 behebt die bisherige Vercel-Sicherheitsblockade; vorherige Vorschau ist READY.
-- 29 Regressionstests, TypeScript, Lint, Produktionsbuild und HTTP-Smoke (Startseite plus zehn API-Fälle) bestehen lokal.
+- T001: Next.js wurde auf 15.5.27 aktualisiert. App-Routen liegen jetzt unter app/, wodurch der zuvor beobachtete Fehler bei generierten Routentypen umgangen wird.
+- 34 Regressionstests, TypeScript, Lint, Produktionsbuild und HTTP-Smoke (Startseite plus fünf Infoseiten und zehn API-Fälle) bestehen lokal.
 - Flug-Endpunkte teilen denselben Adapter; der Legacy-Endpunkt erstellt keine Buchung.
 - Flughafenparameter, Personenanzahl, Daten und KI-Ausgaben werden serverseitig geprüft.
 - Hotel-Ortsnamen werden sicher codiert; fehlende Konfiguration, leere Ergebnisse und Anbieterfehler werden getrennt behandelt.
 - Suchformular hat sichtbare Feldbeschriftungen und erklärt die Anbieterübergabe.
 
+- U018: Suche abbrechen und passende Zeitlimits für die zweistufige Hotelsuche.
+- U014: bis zu zehn Suchen lokal speichern, übernehmen und löschen; keine Kontosynchronisierung.
+- U022/S006: Hilfeseite und ehrlicher E-Mail-Kontakt statt eines funktionslosen Formulars.
+- Navigation: fehlende Footerziele und AGB-Anker repariert; fiktive Telefonnummern entfernt.
+- Metadaten: fehlendes OG-Bild entfernt, absolute Basis gesetzt, doppelte Head-Tags entfernt.
+
+- Produktionsabhängigkeiten: npm audit --omit=dev meldet nach Updates und eng begrenzten Overrides keine bekannten Schwachstellen (7.10.2026). Das ist keine vollständige Sicherheitsfreigabe.
+
 ## Implementiert, Abnahme noch offen
 
-- T016: GitHub Actions prüft Tests, TypeScript, Lint und Build. Die Ausführung im Repository und erforderliche Branch-Regeln müssen noch geprüft werden.
+- T016: GitHub Actions prüft Tests, TypeScript, Lint und Build. Der erste CI-Lauf bestand; der aktuelle Lauf mit Sicherheits- und Browserprüfungen muss beobachtet werden. Erforderliche Branch-Regeln sind nicht eingerichtet.
 - T009/T010/T014: zusätzliche API-Absicherung und Regressionstests vorhanden; aktuelle Lieferantenantworten bleiben zu prüfen.
+- E015: acht Browserfälle (Desktop/Mobil) für Speichern, Wiederherstellung, Suchfehler, Abbruch und Kontakt vorbereitet. Lokaler Chromium-Download ist am Netzwerkarchiv gescheitert; CI führt sie aus.
 - U019: Formularbeschriftungen verbessert; vollständige Barrierefreiheitsprüfung bleibt offen.
 
 ## Externe Voraussetzungen
@@ -42,3 +51,9 @@ Keine Schlüssel in GitHub, Dokumente oder Chat kopieren. Schlüssel im Hosting 
 6. Erst nach durchgängiger Abnahme mehr Produkte und Wachstum freigeben.
 
 Ein grüner Build belegt keine buchbare Reise. Geldannahme ist bis zur durchgängigen Buchungs- und Zahlungsabnahme offen.
+
+Firmen-, Register- und Kontaktangaben stammen aus dem vorhandenen Repository und sind vor öffentlicher Freigabe zu bestätigen. Die Datenschutzerklärung wurde an die tatsächlichen Dienste und lokale Speicherung angepasst; eine fachliche Rechtsprüfung ist noch offen.
+
+Entwicklungstools: Der vollständige Audit meldete zusätzliche Befunde unter anderem in Glob-/Brace-Abhängigkeiten. Sie gehören zur Entwicklungswerkzeugkette; kein erzwungenes Framework-Downgrade oder ungeprüftes Major-Upgrade wurde dafür durchgeführt. Separat weiter prüfen.
+
+Vorbereitet: BETA_FEEDBACK.md, LAUNCH_RUNBOOK.md und BOOKING_DESIGN.md enthalten ausführbare Prüfabläufe sowie den Entwurf für eine später freigegebene Direktbuchung.

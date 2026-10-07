@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { searchFlights } from '../../../lib/flight-search'
+import { searchFlights } from '@/lib/flight-search'
 // Legacy endpoint: search only, never a booking operation.
 export async function POST(req: NextRequest) {
   let body

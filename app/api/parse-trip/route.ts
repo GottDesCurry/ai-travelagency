@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
-import { normalizeParsedTrip } from '../../../lib/parsed-trip'
+import { normalizeParsedTrip } from '@/lib/parsed-trip'
 
 export async function POST(req: NextRequest) {
   let body

@@ -9,6 +9,7 @@ const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
 
 export const metadata = {
+  metadataBase: new URL('https://book-repeat.ch'),
   title: 'Book Repeat – AI Reiseplaner',
   description: 'Book Repeat – Dein smarter KI-gestützter Reiseplaner für Flüge & Hotels',
   keywords: ['Reise', 'Flugsuche', 'Hotelsuche', 'KI', 'AI', 'Travelplanner'],
@@ -17,9 +18,6 @@ export const metadata = {
     description: 'Nutze künstliche Intelligenz für optimale Flug- und Hotelangebote.',
     url: 'https://book-repeat.ch',
     siteName: 'Book Repeat',
-    images: [
-      { url: '/og-image.png', width: 1200, height: 630, alt: 'Book Repeat AI Reiseplaner' }
-    ],
     locale: 'de_CH'
   } satisfies Partial<Metadata['openGraph']>
 } satisfies Metadata
@@ -37,23 +35,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 
   return (
     <html lang="de">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <title>{metadata.title}</title>
-        <meta name="description" content={metadata.description} />
-        <meta name="keywords" content={Array.isArray(metadata.keywords) ? metadata.keywords.join(', ') : metadata.keywords ?? ''} />
-        {/* OpenGraph */}
-        <meta property="og:title" content={metadata.openGraph?.title ?? ''} />
-        <meta property="og:description" content={metadata.openGraph?.description ?? ''} />
-        <meta property="og:url" content={metadata.openGraph?.url ?? ''} />
-        <meta property="og:site_name" content={metadata.openGraph?.siteName ?? ''} />
-        <meta property="og:locale" content={metadata.openGraph?.locale ?? ''} />
-        <meta property="og:type" content="website" />
-        {metadata.openGraph?.images?.map((img, i) => (
-          <meta key={i} property="og:image" content={img.url} />
-        ))}
-      </head>
+
 
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased text-gray-800 bg-white min-h-screen flex flex-col`}>
         {/* Hero Header */}
@@ -73,8 +55,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </div>
         </div>
 
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:p-3">Zum Inhalt</a>
         {/* Main Content from pages */}
-        <main className="flex-grow flex flex-col items-center justify-center px-4 w-full">
+        <main id="main-content" className="flex-grow flex flex-col items-center justify-center px-4 w-full">
           {children}
         </main>
 
@@ -90,8 +73,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <ul className="space-y-1">
                 <li><Link href="/">Flüge</Link></li>
                 <li><Link href="/">Hotels</Link></li>
-                <li><Link href="/">Mietwagen</Link></li>
-                <li><Link href="/">Explore</Link></li>
+                <li><Link href="/hilfe">So funktioniert die Beta</Link></li>
               </ul>
             </div>
             <div>
@@ -105,8 +87,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <div>
               <h4 className="font-semibold mb-2">Partner</h4>
               <ul className="space-y-1">
-                <li><Link href="/partner">Partner werden</Link></li>
-                <li><Link href="/firmeninfo">Firmeninfo</Link></li>
+                <li><Link href="/kontakt">Partneranfrage</Link></li>
+                <li><Link href="/impressum">Firmeninfo</Link></li>
               </ul>
             </div>
           </div>

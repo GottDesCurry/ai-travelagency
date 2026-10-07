@@ -44,11 +44,11 @@ Vercel deployment dpl_CtdPgdes95e41vwjbUbhWosidDEV for commit
 8c3b7d9e6b3781bb1efea3914b5797bd28df2770 was blocked with
 VULNERABLE_NEXTJS_VERSION. Deployment metadata confirms this cause; detailed
 logs remain inaccessible under the connected account's team permissions.
-Next.js and eslint-config-next are now pinned to 15.3.9, with the lockfile
+Next.js and eslint-config-next are now pinned to 15.5.27, with the lockfile
 updated. Verify the replacement deployment before treating this as a working
 hosted preview. A local build is not a successful deployment or live API check.
-An attempted update to 15.5.27 failed clean builds because generated route types
-referenced app/ instead of src/app/. Investigate that upgrade separately.
+The earlier 15.5.27 route-generation failure is resolved by moving App Router
+files from src/app/ to app/ and using alias imports for shared server modules.
 
 ## Masterplan implementation block
 
@@ -60,3 +60,13 @@ See docs/MASTERPLAN.md, docs/IMPLEMENTATION_STATUS.md and
  docs/PROVIDER_INVENTORY.md for task status and access requirements.
 The legacy flights-booking and search-flights paths share the same validated
 search adapter as /api/flights. flights-booking creates no order or payment.
+
+## Browser checks and dependency hygiene
+
+After npm ci and npm run build, run npx playwright install chromium and
+npm run e2e. GitHub Actions installs Chromium with system dependencies and runs
+desktop/mobile checks. No provider credentials or live supplier calls are used.
+The local browser archive download failed, so local browser success is not claimed.
+Production dependency audit is included in CI. Narrow overrides patch Next.js's
+PostCSS and typography's selector parser; inspect their compatibility on upgrades.
+All provider contracts and operational/legal release gates remain open.

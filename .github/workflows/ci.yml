@@ -15,8 +15,11 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
       - run: npm test
       - run: npx tsc --noEmit
       - run: npm run lint
       - run: npm run build
       - run: npm run smoke
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e

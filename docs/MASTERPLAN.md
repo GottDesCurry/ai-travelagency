@@ -36,7 +36,7 @@ Prioritäten: P0 blockiert die nächste Freigabe; P1 gehört zum ersten öffentl
 - [ ] T013 Leere Ergebnisse, Anbieterfehler, Quotenüberschreitung und langsame Antworten verständlich anzeigen.
 - [ ] T014 Verhindern, dass die KI Angebote, Preise, Buchungslinks oder Verfügbarkeit erfindet.
 - [ ] T015 Mobile End-to-End-Suche und Weiterleitung auf iOS und Android prüfen.
-- [ ] T016 CI für Tests, TypeScript, Lint und Build verbindlich machen.
+- [x] T016 CI für Tests, TypeScript, Lint und Build verbindlich machen.
 - [ ] T017 BETA_TESTING.md mit aktueller Vorschau, Testergebnissen und verbleibenden Grenzen aktualisieren.
 
 Abnahme: Ein neuer Nutzer kann eine gültige Suche bis zum passenden Anbieterlink durchführen; Fehler lassen sich reproduzieren und zuordnen. Keine echten Zahlungen in dieser Phase.
@@ -73,15 +73,15 @@ Abnahme: Nutzer erklären den Nutzen selbst und wählen das Produkt für eine re
 - [ ] U011 Nachvollziehbare Erklärung geben, warum ein Angebot zu den Angaben passt.
 - [ ] U012 Reiseplan mit realistischen Wegen, Öffnungszeiten und Reservierungsbedarf erstellen.
 - [ ] U013 Unsichere oder nicht aktuelle KI-Aussagen kennzeichnen und relevante Quellen verlinken.
-- [ ] U014 Favoriten, gespeicherte Reisen und Versionsverlauf entwickeln.
+- [ ] U014 Favoriten, gespeicherte Reisen und Versionsverlauf entwickeln. Teilstand: lokale gespeicherte Suchen sind vorhanden; Kontosynchronisierung und Versionsverlauf bleiben offen.
 - [ ] U015 Teilen und gemeinsames Abstimmen ohne Offenlegung privater Reisedaten ermöglichen.
 - [ ] U016 Gastnutzung anbieten; Konto erst verlangen, wenn es einen klaren Nutzen hat.
 - [ ] U017 Buchungs- oder Anbieterübergang mit korrekten Daten und eindeutiger Zuständigkeit gestalten.
-- [ ] U018 Ladezustände, Abbrechen und erneutes Suchen robust machen.
+- [x] U018 Ladezustände, Abbrechen und erneutes Suchen robust machen.
 - [ ] U019 Tastatur, Screenreader, Kontrast und Formulare auf Barrierefreiheit prüfen.
 - [ ] U020 Mobile Layouts, kleine Displays und langsame Verbindungen testen.
 - [ ] U021 Alle Texte, Datumssysteme, Zeitzonen und Währungen konsistent lokalisieren.
-- [ ] U022 Kontakt, Feedback und Problem melden jederzeit erreichbar machen.
+- [ ] U022 Kontakt, Feedback und Problem melden jederzeit erreichbar machen. Teilstand: Hilfe und E-Mail-Übergabe vorhanden; tatsächliche Erreichbarkeit bestätigen.
 - [ ] U023 Bewertungen nur aus erlaubten Quellen nutzen; eigene Bewertungen auf Echtheit prüfen.
 - [ ] U024 Preisalarme erst nach Einwilligung und Klärung der Datenrechte anbieten.
 

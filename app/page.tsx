@@ -1,10 +1,11 @@
 // Testdeployment
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import iataCodes from '@/data/iata-codes.json'
 import FlightCard from '@/components/FlightCard'
 import HotelCard from '@/components/HotelCard'
+import SavedSearches from '@/components/SavedSearches'
 import type { HotelOffer } from '@/lib/hotel-offers'
 import { flightQuery, hotelQuery, validateTravelDates } from '@/lib/trip-search'
 import type { FlightOffer } from '@/lib/flight-offers'
@@ -33,16 +34,17 @@ const normalizeCity = (input: string): string => {
   return found?.city || input
 }
 
-const correctCitySpellingWithGPT = async (input: string): Promise<string> => {
+const correctCitySpellingWithGPT = async (input: string, signal?: AbortSignal): Promise<string> => {
   try {
     const data = await requestJson('/api/ai-correct-city', {
+      signal,
       method: 'POST',
       body: JSON.stringify({ input }),
       headers: { 'Content-Type': 'application/json' }
     })
     return data.corrected || input
   } catch (err) {
-    console.warn('GPT-Korrektur fehlgeschlagen:', err)
+    if (signal?.aborted) throw err
     return input
   }
 }
@@ -66,6 +68,8 @@ export default function Home() {
   const [flightDone, setFlightDone] = useState(false)
   const [hotelDone, setHotelDone] = useState(false)
   const searchInProgress = useRef(false)
+  const activeSearch = useRef<AbortController | null>(null)
+  useEffect(() => () => activeSearch.current?.abort(), [])
 
   const getIataCode = (cityName: string): string | null => {
     const match = iataCodes.find(
@@ -77,6 +81,8 @@ export default function Home() {
   const handleSearch = async () => {
     if (searchInProgress.current) return
     searchInProgress.current = true
+    const controller = new AbortController()
+    activeSearch.current = controller
     setError('')
     setFlightError('')
     setHotelError('')
@@ -95,13 +101,14 @@ export default function Home() {
     try {
       if (prompt.trim() !== '') {
         const parsed = await requestJson('/api/parse-trip', {
+          signal: controller.signal,
           method: 'POST',
           body: JSON.stringify({ prompt }),
           headers: { 'Content-Type': 'application/json' }
         })
 
         if (typeof parsed?.origin === 'string' && parsed.origin) {
-          const corrected = await correctCitySpellingWithGPT(parsed.origin)
+          const corrected = await correctCitySpellingWithGPT(parsed.origin, controller.signal)
           const city = normalizeCity(corrected)
           if (getIataCode(city)) {
             newOrigin = city
@@ -110,7 +117,7 @@ export default function Home() {
         }
 
         if (typeof parsed?.destination === 'string' && parsed.destination) {
-          const corrected = await correctCitySpellingWithGPT(parsed.destination)
+          const corrected = await correctCitySpellingWithGPT(parsed.destination, controller.signal)
           const city = normalizeCity(corrected)
           if (getIataCode(city)) {
             newDestination = city
@@ -150,7 +157,7 @@ export default function Home() {
       const tasks: Promise<void>[] = []
       if (searchFlights) {
         tasks.push(settleSearch(
-          () => loadFlights(flightQuery(originCode!, destinationCode!, newDate, newReturnDate, newPeople)),
+          () => loadFlights(flightQuery(originCode!, destinationCode!, newDate, newReturnDate, newPeople), controller.signal),
           offers => { setFlightResults(offers); setFlightDone(true) },
           message => { setFlightError(message); setFlightDone(true) }
         ))
@@ -158,7 +165,7 @@ export default function Home() {
       if (searchHotels) {
         const cityName = iataCodes.find(item => item.code === newDestination.toUpperCase())?.city || newDestination
         tasks.push(settleSearch(
-          () => loadHotels(hotelQuery(translateCityName(cityName), newDate, newReturnDate, newPeople)),
+          () => loadHotels(hotelQuery(translateCityName(cityName), newDate, newReturnDate, newPeople), controller.signal),
           offers => { setHotelResults(offers); setHotelDone(true) },
           message => { setHotelError(message); setHotelDone(true) }
         ))
@@ -168,6 +175,7 @@ export default function Home() {
       console.error('Fehler bei der Suche:', err)
       setError(err instanceof Error ? err.message : 'Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.')
     } finally {
+      activeSearch.current = null
       searchInProgress.current = false
       setLoading(false)
     }
@@ -233,7 +241,18 @@ export default function Home() {
         >
           🔍 Suche starten
         </button>
+        {loading && <button type="button" onClick={() => activeSearch.current?.abort()} className="w-full border border-gray-400 rounded py-2">Suche abbrechen</button>}
         <p className="text-sm text-gray-600">Die Beta sucht Flug- und Hotelangebote. Du buchst und bezahlst anschließend beim jeweiligen Anbieter. Verfügbarkeit, Endpreis und Bedingungen bitte dort prüfen.</p>
+
+        <SavedSearches
+          current={{ origin, destination, date, returnDate, people, searchFlights, searchHotels }}
+          disabled={loading}
+          onRestore={value => {
+            setOrigin(value.origin); setDestination(value.destination); setDate(value.date); setReturnDate(value.returnDate)
+            setPeople(value.people); setSearchFlights(value.searchFlights); setSearchHotels(value.searchHotels); setPrompt('')
+            setFlightResults([]); setHotelResults([]); setError(''); setFlightError(''); setHotelError(''); setFlightDone(false); setHotelDone(false)
+          }}
+        />
 
         {error && (
           <div
@@ -245,7 +264,8 @@ export default function Home() {
         )}
 
         {loading && (
-          <div className="flex justify-center py-4">
+          <div role="status" className="flex justify-center gap-2 py-4">
+            <span>Suche läuft …</span>
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-800" />
           </div>
         )}
