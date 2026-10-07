@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       headers: { 'X-RapidAPI-Key': process.env.RAPIDAPI_KEY, 'X-RapidAPI-Host': API_HOST },
       params: { fromId: origin, toId: destination, departDate: date, returnDate: returnDate || '', adults, cabinClass: 'ECONOMY', currency: 'CHF' }
     })
-    return res.status(200).json(normalizeFlightOffers(response.data))
+    return res.status(200).json(normalizeFlightOffers(response.data, Boolean(returnDate)))
   } catch {
     return res.status(502).json({ error: 'Der Fluganbieter hat keine gültige Antwort geliefert. Bitte später erneut versuchen.' })
   }

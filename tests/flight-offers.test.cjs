@@ -47,3 +47,15 @@ test('AI route rejects the former incompatible envelope and wrong method', async
 test('empty search skips AI and returns a valid empty array', async () => {
  assert.deepEqual(await invoke('POST', []), { status: 200, payload: [] })
 })
+test('round trips preserve both directions and connecting segments without changing total price', () => {
+ const value=raw('rt','450')
+ value.itineraries.push({duration:'PT4H',segments:[{carrierCode:'LX',departure:{iataCode:'BER',at:'2026-12-05T10:00:00'},arrival:{iataCode:'FRA',at:'2026-12-05T11:00:00'}},{carrierCode:'LH',departure:{iataCode:'FRA',at:'2026-12-05T12:00:00'},arrival:{iataCode:'ZRH',at:'2026-12-05T14:00:00'}}]})
+ const [offer]=normalizeFlightOffers({data:[value]},true)
+ assert.equal(offer.price,450);assert.equal(offer.returnLeg.departure.iataCode,'BER');assert.equal(offer.returnLeg.arrival.iataCode,'ZRH');assert.equal(offer.returnLeg.stops,1);assert.equal(offer.returnLeg.segments.length,2)
+ assert.equal(selectFlightIds([offer],['rt'])[0].returnLeg,offer.returnLeg)
+})
+test('a requested return trip never silently becomes a one-way offer',()=>{
+ assert.throws(()=>normalizeFlightOffers({data:[raw('oneway',100)]},true))
+ const invalid=raw('bad',100);invalid.itineraries.push({duration:'PT1H',segments:[]})
+ assert.throws(()=>normalizeFlightOffers({data:[invalid]},true))
+})

@@ -26,3 +26,8 @@ test('missing and unsafe links produce no clickable booking action',()=>{
  assert.doesNotMatch(html,/<a\b/);assert.match(html,/keinen gültigen Buchungslink/)
  }
 })
+test('flight card renders the return direction and every connecting segment',()=>{
+ const leg={duration:'PT4H',stops:1,departure:{iataCode:'BER',at:'2026-12-05T10:00:00'},arrival:{iataCode:'ZRH',at:'2026-12-05T14:00:00'},airline:'LX',airlineCode:'LX',segments:[{departure:{iataCode:'BER',at:'2026-12-05T10:00:00'},arrival:{iataCode:'FRA',at:'2026-12-05T11:00:00'},airlineCode:'LX'},{departure:{iataCode:'FRA',at:'2026-12-05T12:00:00'},arrival:{iataCode:'ZRH',at:'2026-12-05T14:00:00'},airlineCode:'LH'}]}
+ const html=renderToStaticMarkup(React.createElement(FlightCard,{flight:{...flight,returnLeg:leg}}))
+ assert.match(html,/Hinflug: ZRH → BER/);assert.match(html,/Rückflug: BER → ZRH/);assert.match(html,/BER → FRA/);assert.match(html,/FRA → ZRH/);assert.match(html,/für Hin- und Rückflug/)
+})
