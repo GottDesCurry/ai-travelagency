@@ -40,8 +40,12 @@ be reconciled as a separate feature change; it has not been discarded or merged.
 The accumulated repair branch can be reviewed directly against main rather than
 merging every dependent PR manually.
 
-At consolidation, local checks pass, but GitHub reports a failed Vercel deployment
-for commit 8c3b7d9e6b3781bb1efea3914b5797bd28df2770. Obtain that deployment's
-build logs in Vercel before treating this as a working hosted preview. No cause
-has been established from the GitHub status alone. Do not equate the local build
-with a successful deployment or live API verification.
+Vercel deployment dpl_CtdPgdes95e41vwjbUbhWosidDEV for commit
+8c3b7d9e6b3781bb1efea3914b5797bd28df2770 was blocked with
+VULNERABLE_NEXTJS_VERSION. Deployment metadata confirms this cause; detailed
+logs remain inaccessible under the connected account's team permissions.
+Next.js and eslint-config-next are now pinned to 15.3.9, with the lockfile
+updated. Verify the replacement deployment before treating this as a working
+hosted preview. A local build is not a successful deployment or live API check.
+An attempted update to 15.5.27 failed clean builds because generated route types
+referenced app/ instead of src/app/. Investigate that upgrade separately.
