@@ -1,0 +1,47 @@
+# Beta test setup
+
+This branch combines the build, flight contract, hotel contract, booking-link,
+error-handling and return-itinerary repairs from PRs #2–#7.
+
+## Local validation
+
+Use the Node version supported by the hosting project. Install with `npm ci`.
+Run `npm test`, `npx tsc --noEmit`, `npm run lint`, and `npm run build`.
+Start the production application with `npm start`.
+
+Set RAPIDAPI_KEY and OPENAI_API_KEY in an untracked .env.local file for local
+integration tests, or in the hosting provider Preview environment. Never commit
+credentials. The RapidAPI subscription must authorize booking-com18 endpoints.
+Without credentials, manual flight/hotel search and prompt parsing deliberately
+report configuration errors; existing mocked regression tests do not require keys.
+
+## Live integration checks still required
+
+- Verify /flights/search, /stays/auto-complete and /stays/search in the subscribed
+  RapidAPI playground. The current query names and payload assumptions are not
+  independently verified against live responses.
+- Test one-way and return travel with 1 and 4 adults. Confirm selected dates and
+  passenger counts reach the provider, and both itineraries display correctly.
+- Confirm the displayed price/currency matches the provider total; determine
+  exactly whether it includes all travelers and fees before beta release.
+- Test hotel-only and combined searches; confirm check-in/out, guests and the
+  price basis. Verify returned location and hotel envelopes match the adapters.
+- Follow actual supplied provider links and check that they lead to the intended
+  offer. HTTPS validation alone does not verify availability or matching details.
+- Exercise AI prompt parsing and ranking, empty results, invalid input, timeout,
+  provider quota/authentication errors, and partial search failure.
+- Check phone and desktop layouts and accessibility before inviting 3–5 testers.
+
+## GitHub and hosting status
+
+PR #1 contains additional features (animated homepage, itinerary generation,
+saved trips, contact/privacy updates). It overlaps with these repairs and should
+be reconciled as a separate feature change; it has not been discarded or merged.
+The accumulated repair branch can be reviewed directly against main rather than
+merging every dependent PR manually.
+
+At consolidation, local checks pass, but GitHub reports a failed Vercel deployment
+for commit 8c3b7d9e6b3781bb1efea3914b5797bd28df2770. Obtain that deployment's
+build logs in Vercel before treating this as a working hosted preview. No cause
+has been established from the GitHub status alone. Do not equate the local build
+with a successful deployment or live API verification.
