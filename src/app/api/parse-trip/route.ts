@@ -1,27 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
-type ParsedTrip = {
-  origin: string | null
-  destination: string | null
-  date: string | null
-  returnDate: string | null
-  people: number | null
-}
-
-// ❌ Diese Funktion wird aktuell nicht verwendet → entfernt, um ESLint-Fehler zu vermeiden
-/*
-function getNextFutureDateFromPartial(day: number, month: number): string {
-  const today = new Date()
-  const currentYear = today.getFullYear()
-
-  const thisYear = new Date(currentYear, month - 1, day)
-  if (thisYear >= today) return thisYear.toISOString().split('T')[0]
-
-  const nextYear = new Date(currentYear + 1, month - 1, day)
-  return nextYear.toISOString().split('T')[0]
-}
-*/
+import { normalizeParsedTrip } from '../../../lib/parsed-trip'
 
 export async function POST(req: NextRequest) {
   let body
@@ -31,6 +11,7 @@ export async function POST(req: NextRequest) {
   if (!process.env.OPENAI_API_KEY) return NextResponse.json({ error: 'Die KI-Reiseplanung ist noch nicht konfiguriert.' }, { status: 503 })
 
   const systemPrompt = `
+Heute ist ${new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Zurich' })}. Erfinde keine fehlenden Angaben.
 Extrahiere folgende Informationen aus dem Text:
 - Abflugort (origin)
 - Zielort (destination)
@@ -59,31 +40,8 @@ Behebe einfache Rechtschreibfehler oder Erkennungsprobleme automatisch, z. B. 
       temperature: 0,
     })
 
-    const parsed: ParsedTrip = JSON.parse(chatResponse.choices[0].message.content || '{}')
-    const { date, returnDate, origin, destination, people } = parsed // ✅ const statt let
-
-    const today = new Date()
-    const maxYear = today.getFullYear() + 1
-
-    if (date) {
-      const parts = date.split('-').map(Number)
-      if (parts.length === 3) {
-        const year = parts[0]
-        if (year > maxYear) {
-          return NextResponse.json({ error: `Datum ${date} liegt zu weit in der Zukunft.` }, { status: 400 })
-        }
-      }
-    }
-
-    return NextResponse.json({
-      origin: origin || null,
-      destination: destination || null,
-      date: date || null,
-      returnDate: returnDate || null,
-      people: people ?? null,
-    })
-  } catch (err) {
-    console.error('❌ Fehler beim Parsen der Reiseinformationen:', err)
-    return NextResponse.json({ error: 'Interner Fehler bei der Verarbeitung des Prompts.' }, { status: 500 })
+    return NextResponse.json(normalizeParsedTrip(JSON.parse(chatResponse.choices[0]?.message.content || '{}')))
+  } catch {
+    return NextResponse.json({ error: 'Die KI hat keine gültigen Reiseangaben geliefert. Bitte die Felder direkt ausfüllen.' }, { status: 502 })
   }
 }

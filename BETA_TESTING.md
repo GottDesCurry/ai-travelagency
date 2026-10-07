@@ -49,3 +49,14 @@ updated. Verify the replacement deployment before treating this as a working
 hosted preview. A local build is not a successful deployment or live API check.
 An attempted update to 15.5.27 failed clean builds because generated route types
 referenced app/ instead of src/app/. Investigate that upgrade separately.
+
+## Masterplan implementation block
+
+Run `npm run smoke` after building. It starts the production server on loopback
+with RapidAPI/OpenAI credentials removed and checks the page plus ten HTTP API
+cases. This is a configuration/error-handling check, not a live supplier test.
+GitHub Actions now runs tests, TypeScript, lint, build and this smoke check.
+See docs/MASTERPLAN.md, docs/IMPLEMENTATION_STATUS.md and
+ docs/PROVIDER_INVENTORY.md for task status and access requirements.
+The legacy flights-booking and search-flights paths share the same validated
+search adapter as /api/flights. flights-booking creates no order or payment.

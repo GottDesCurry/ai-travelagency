@@ -86,8 +86,8 @@ export default function Home() {
     setFlightResults([])
     setHotelResults([])
 
-    let newOrigin = origin
-    let newDestination = destination
+    let newOrigin = origin.trim()
+    let newDestination = destination.trim()
     let newDate = date
     let newReturnDate = returnDate
     let newPeople = people
@@ -179,7 +179,10 @@ export default function Home() {
         <p className="text-sm text-gray-500">
           z. B. Ich reise mit 3 Freunden nach Malaga vom 10. bis 14. August
         </p>
+        <label htmlFor="trip-prompt" className="block text-sm font-medium">Reisewunsch (optional)</label>
         <textarea
+          id="trip-prompt"
+          maxLength={4000}
           value={prompt}
           onChange={e => setPrompt(e.target.value)}
           placeholder="Reiseplan beschreiben..."
@@ -187,14 +190,26 @@ export default function Home() {
           rows={2}
         />
         <div className="grid grid-cols-2 gap-4">
-          <input value={origin} onChange={e => setOrigin(e.target.value)} placeholder="ZRH" className="px-4 py-2 rounded border border-gray-300" />
-          <input value={destination} onChange={e => setDestination(e.target.value)} placeholder="BER" className="px-4 py-2 rounded border border-gray-300" />
-          <input type="date" value={date} onChange={e => setDate(e.target.value)} className="px-4 py-2 rounded border border-gray-300" />
-          <input type="date" value={returnDate} onChange={e => setReturnDate(e.target.value)} className="px-4 py-2 rounded border border-gray-300" />
+          <label className="text-sm">Abflugort
+            <input value={origin} maxLength={120} onChange={e => setOrigin(e.target.value)} placeholder="ZRH" className="w-full px-4 py-2 rounded border border-gray-300" />
+          </label>
+          <label className="text-sm">Reiseziel
+            <input value={destination} maxLength={120} onChange={e => setDestination(e.target.value)} placeholder="BER" className="w-full px-4 py-2 rounded border border-gray-300" />
+          </label>
+          <label className="text-sm">Hinreise / Check-in
+            <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full px-4 py-2 rounded border border-gray-300" />
+          </label>
+          <label className="text-sm">Rückreise / Check-out
+            <input type="date" value={returnDate} onChange={e => setReturnDate(e.target.value)} className="w-full px-4 py-2 rounded border border-gray-300" />
+          </label>
         </div>
+        <label htmlFor="adults" className="block text-sm font-medium">Erwachsene (1–9)</label>
         <input
+          id="adults"
           type="number"
           min={1}
+          max={9}
+          step={1}
           value={people || ''}
           onChange={e => setPeople(parseInt(e.target.value))}
           placeholder="Anzahl Personen"
@@ -218,6 +233,7 @@ export default function Home() {
         >
           🔍 Suche starten
         </button>
+        <p className="text-sm text-gray-600">Die Beta sucht Flug- und Hotelangebote. Du buchst und bezahlst anschließend beim jeweiligen Anbieter. Verfügbarkeit, Endpreis und Bedingungen bitte dort prüfen.</p>
 
         {error && (
           <div
