@@ -12,7 +12,8 @@ const headers = {
 
 async function fetchAirportId(query: string): Promise<string | null> {
   try {
-    const res = await fetch(`${BASE_URL}/api/v1/flights/searchFlightLocation?query=${encodeURIComponent(query)}`, { headers })
+    const res = await fetch(`${BASE_URL}/api/v1/flights/searchFlightLocation?query=${encodeURIComponent(query)}`, { headers, signal: AbortSignal.timeout(15000) })
+    if (!res.ok) throw new Error('Flight provider request failed')
     const data = await res.json()
     const match = data?.locations?.find((loc: any) => loc?.id?.includes('AIRPORT'))
     return match?.id || null
@@ -40,7 +41,8 @@ export async function POST(req: NextRequest) {
 
     const url = `${BASE_URL}/api/v1/flights/searchFlights?fromId=${fromId}&toId=${toId}&date=${date}&stops=none&pageNo=1&adults=1&sort=BEST&cabinClass=ECONOMY&currency_code=CHF`
 
-    const res = await fetch(url, { headers })
+    const res = await fetch(url, { headers, signal: AbortSignal.timeout(15000) })
+    if (!res.ok) throw new Error('Flight provider request failed')
     const data = await res.json()
 
     const flights = (data?.flights || []).map((flight: any, index: number) => ({

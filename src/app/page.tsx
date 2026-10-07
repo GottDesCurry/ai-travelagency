@@ -1,13 +1,15 @@
 // Testdeployment
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import iataCodes from '@/data/iata-codes.json'
 import FlightCard from '@/components/FlightCard'
 import HotelCard from '@/components/HotelCard'
-import { isHotelOffer, type HotelOffer } from '@/lib/hotel-offers'
+import type { HotelOffer } from '@/lib/hotel-offers'
 import { flightQuery, hotelQuery, validateTravelDates } from '@/lib/trip-search'
-import { isFlightOffer, type FlightOffer } from '@/lib/flight-offers'
+import type { FlightOffer } from '@/lib/flight-offers'
+
+import { requestJson, loadFlights, loadHotels, settleSearch } from '@/lib/search-client'
 
 const translateCityName = (name: string): string => {
   const nameNormalized = name.trim().toLowerCase()
@@ -18,24 +20,6 @@ const translateCityName = (name: string): string => {
     'munich': 'Munich', 'venedig': 'Venice', 'venice': 'Venice', 'prag': 'Prague', 'prague': 'Prague'
   }
   return translations[nameNormalized] || name
-}
-
-const MAX_YEARS_INTO_FUTURE = 2
-
-const isValidFutureDate = (inputDate: string): boolean => {
-  const date = new Date(inputDate)
-  const now = new Date()
-  return date.getTime() > now.getTime() && date.getFullYear() - now.getFullYear() <= MAX_YEARS_INTO_FUTURE
-}
-
-const getClosestFutureDate = (month: number, day: number): string => {
-  const now = new Date()
-  const year = (now.getMonth() + 1 > month || (now.getMonth() + 1 === month && now.getDate() > day))
-    ? now.getFullYear() + 1
-    : now.getFullYear()
-  const futureDate = new Date(year, month - 1, day)
-  console.log(`⚠️ Fallback auf zukünftiges Datum: ${futureDate.toISOString().split('T')[0]}`)
-  return futureDate.toISOString().split('T')[0]
 }
 
 const normalizeCity = (input: string): string => {
@@ -51,12 +35,11 @@ const normalizeCity = (input: string): string => {
 
 const correctCitySpellingWithGPT = async (input: string): Promise<string> => {
   try {
-    const res = await fetch('/api/ai-correct-city', {
+    const data = await requestJson('/api/ai-correct-city', {
       method: 'POST',
       body: JSON.stringify({ input }),
       headers: { 'Content-Type': 'application/json' }
     })
-    const data = await res.json()
     return data.corrected || input
   } catch (err) {
     console.warn('GPT-Korrektur fehlgeschlagen:', err)
@@ -78,13 +61,11 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      const errorBox = document.getElementById('error-box')
-      if (errorBox) errorBox.style.display = 'none'
-    }, 5000)
-    return () => clearTimeout(timeout)
-  }, [])
+  const [flightError, setFlightError] = useState('')
+  const [hotelError, setHotelError] = useState('')
+  const [flightDone, setFlightDone] = useState(false)
+  const [hotelDone, setHotelDone] = useState(false)
+  const searchInProgress = useRef(false)
 
   const getIataCode = (cityName: string): string | null => {
     const match = iataCodes.find(
@@ -94,7 +75,13 @@ export default function Home() {
   }
 
   const handleSearch = async () => {
+    if (searchInProgress.current) return
+    searchInProgress.current = true
     setError('')
+    setFlightError('')
+    setHotelError('')
+    setFlightDone(false)
+    setHotelDone(false)
     setLoading(true)
     setFlightResults([])
     setHotelResults([])
@@ -107,14 +94,13 @@ export default function Home() {
 
     try {
       if (prompt.trim() !== '') {
-        const promptRes = await fetch('/api/parse-trip', {
+        const parsed = await requestJson('/api/parse-trip', {
           method: 'POST',
           body: JSON.stringify({ prompt }),
           headers: { 'Content-Type': 'application/json' }
         })
-        const parsed = await promptRes.json()
 
-        if (parsed.origin) {
+        if (typeof parsed?.origin === 'string' && parsed.origin) {
           const corrected = await correctCitySpellingWithGPT(parsed.origin)
           const city = normalizeCity(corrected)
           if (getIataCode(city)) {
@@ -123,7 +109,7 @@ export default function Home() {
           }
         }
 
-        if (parsed.destination) {
+        if (typeof parsed?.destination === 'string' && parsed.destination) {
           const corrected = await correctCitySpellingWithGPT(parsed.destination)
           const city = normalizeCity(corrected)
           if (getIataCode(city)) {
@@ -132,23 +118,16 @@ export default function Home() {
           }
         }
 
-        if (parsed.date) {
-          const d = new Date(parsed.date)
-          newDate = isValidFutureDate(parsed.date)
-            ? parsed.date
-            : getClosestFutureDate(d.getMonth() + 1, d.getDate())
+        if (typeof parsed?.date === 'string' && parsed.date) {
+          newDate = parsed.date
           setDate(newDate)
         }
-
-        if (parsed.returnDate) {
-          const d = new Date(parsed.returnDate)
-          newReturnDate = isValidFutureDate(parsed.returnDate)
-            ? parsed.returnDate
-            : getClosestFutureDate(d.getMonth() + 1, d.getDate())
+        if (typeof parsed?.returnDate === 'string' && parsed.returnDate) {
+          newReturnDate = parsed.returnDate
           setReturnDate(newReturnDate)
         }
 
-        if (parsed.people !== undefined && parsed.people > 0) {
+        if (typeof parsed?.people === 'number' && parsed.people > 0) {
           newPeople = parsed.people
           setPeople(newPeople)
         }
@@ -168,37 +147,28 @@ export default function Home() {
         return
       }
 
+      const tasks: Promise<void>[] = []
       if (searchFlights) {
-        const combinedRes = await fetch(`/api/flights-aggregated?${flightQuery(originCode!, destinationCode!, newDate, newReturnDate, newPeople)}`)
-        const combined = await combinedRes.json()
-        if (!combinedRes.ok) throw new Error(combined?.error || 'Flugsuche fehlgeschlagen')
-        if (!Array.isArray(combined) || !combined.every(isFlightOffer)) throw new Error('Ungültige Flugangebote')
-
-        const aiRes = await fetch('/api/ai', {
-          method: 'POST',
-          body: JSON.stringify(combined),
-          headers: { 'Content-Type': 'application/json' }
-        })
-
-        const topFlights = await aiRes.json()
-        if (!aiRes.ok) throw new Error(topFlights?.error || 'Flugauswertung fehlgeschlagen')
-        if (!Array.isArray(topFlights) || !topFlights.every(isFlightOffer)) throw new Error('Ungültige Flugauswertung')
-        setFlightResults(topFlights)
+        tasks.push(settleSearch(
+          () => loadFlights(flightQuery(originCode!, destinationCode!, newDate, newReturnDate, newPeople)),
+          offers => { setFlightResults(offers); setFlightDone(true) },
+          message => { setFlightError(message); setFlightDone(true) }
+        ))
       }
-
       if (searchHotels) {
         const cityName = iataCodes.find(item => item.code === newDestination.toUpperCase())?.city || newDestination
-        const translatedCity = translateCityName(cityName)
-        const hotelRes = await fetch(`/api/hotels?${hotelQuery(translatedCity, newDate, newReturnDate, newPeople)}`)
-        const hotels = await hotelRes.json()
-        if (!hotelRes.ok) throw new Error(hotels?.error || 'Hotelsuche fehlgeschlagen')
-        if (!Array.isArray(hotels.results) || !hotels.results.every(isHotelOffer)) throw new Error('Ungültige Hotelangebote')
-        setHotelResults(hotels.results)
+        tasks.push(settleSearch(
+          () => loadHotels(hotelQuery(translateCityName(cityName), newDate, newReturnDate, newPeople)),
+          offers => { setHotelResults(offers); setHotelDone(true) },
+          message => { setHotelError(message); setHotelDone(true) }
+        ))
       }
+      await Promise.all(tasks)
     } catch (err) {
       console.error('Fehler bei der Suche:', err)
       setError(err instanceof Error ? err.message : 'Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.')
     } finally {
+      searchInProgress.current = false
       setLoading(false)
     }
   }
@@ -242,6 +212,8 @@ export default function Home() {
         </div>
         <button
           onClick={handleSearch}
+          disabled={loading}
+          aria-busy={loading}
           className="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition"
         >
           🔍 Suche starten
@@ -249,7 +221,7 @@ export default function Home() {
 
         {error && (
           <div
-            id="error-box"
+            role="alert"
             className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 text-sm rounded text-center"
           >
             {error}
@@ -262,11 +234,10 @@ export default function Home() {
           </div>
         )}
 
-        {!loading && (flightResults.length > 0 || hotelResults.length > 0) && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-2 text-sm rounded text-center">
-            ✅ Reisevorschläge erfolgreich geladen!
-          </div>
-        )}
+        {flightError && <p role="alert" className="text-red-700">Flüge: {flightError}</p>}
+        {hotelError && <p role="alert" className="text-red-700">Hotels: {hotelError}</p>}
+        {flightDone && !flightError && flightResults.length === 0 && <p role="status">Keine passenden Flüge gefunden.</p>}
+        {hotelDone && !hotelError && hotelResults.length === 0 && <p role="status">Keine passenden Hotels gefunden.</p>}
       </div>
 
       {hotelResults.length > 0 && (
