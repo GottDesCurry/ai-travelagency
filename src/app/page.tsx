@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import iataCodes from '@/data/iata-codes.json'
 import FlightCard from '@/components/FlightCard'
 import HotelCard from '@/components/HotelCard'
+import { isFlightOffer, type FlightOffer } from '@/lib/flight-offers'
 
 const translateCityName = (name: string): string => {
   const nameNormalized = name.trim().toLowerCase()
@@ -70,7 +71,7 @@ export default function Home() {
   const [searchFlights, setSearchFlights] = useState(true)
   const [searchHotels, setSearchHotels] = useState(true)
   const [prompt, setPrompt] = useState('')
-  const [flightResults, setFlightResults] = useState<any[]>([])
+  const [flightResults, setFlightResults] = useState<FlightOffer[]>([])
   const [hotelResults, setHotelResults] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -167,6 +168,8 @@ export default function Home() {
       if (searchFlights) {
         const combinedRes = await fetch(`/api/flights-aggregated?origin=${originCode}&destination=${destinationCode}&date=${newDate}`)
         const combined = await combinedRes.json()
+        if (!combinedRes.ok) throw new Error(combined?.error || 'Flugsuche fehlgeschlagen')
+        if (!Array.isArray(combined) || !combined.every(isFlightOffer)) throw new Error('Ungültige Flugangebote')
 
         const aiRes = await fetch('/api/ai', {
           method: 'POST',
@@ -175,6 +178,8 @@ export default function Home() {
         })
 
         const topFlights = await aiRes.json()
+        if (!aiRes.ok) throw new Error(topFlights?.error || 'Flugauswertung fehlgeschlagen')
+        if (!Array.isArray(topFlights) || !topFlights.every(isFlightOffer)) throw new Error('Ungültige Flugauswertung')
         setFlightResults(topFlights)
       }
 
