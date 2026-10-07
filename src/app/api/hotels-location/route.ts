@@ -11,6 +11,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     const response = await fetch(`https://booking-com.p.rapidapi.com/v1/hotels/locations?name=${name}&locale=de`, {
       method: 'GET',
+      signal: AbortSignal.timeout(15000),
       headers: {
         'X-RapidAPI-Key': process.env.RAPIDAPI_KEY || '',
         'X-RapidAPI-Host': 'booking-com.p.rapidapi.com'

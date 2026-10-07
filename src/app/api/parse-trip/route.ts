@@ -24,7 +24,11 @@ function getNextFutureDateFromPartial(day: number, month: number): string {
 */
 
 export async function POST(req: NextRequest) {
-  const { prompt } = (await req.json()) as { prompt: string }
+  let body
+  try { body = await req.json() } catch { return NextResponse.json({ error: 'Ungültiges JSON.' }, { status: 400 }) }
+  const prompt = body?.prompt
+  if (typeof prompt !== 'string' || !prompt.trim() || prompt.length > 4000) return NextResponse.json({ error: 'Bitte einen Reiseplan mit maximal 4000 Zeichen eingeben.' }, { status: 400 })
+  if (!process.env.OPENAI_API_KEY) return NextResponse.json({ error: 'Die KI-Reiseplanung ist noch nicht konfiguriert.' }, { status: 503 })
 
   const systemPrompt = `
 Extrahiere folgende Informationen aus dem Text:
@@ -46,7 +50,7 @@ Wenn du etwas nicht findest, gib einen leeren String oder null zurück.
 Behebe einfache Rechtschreibfehler oder Erkennungsprobleme automatisch, z. B. bei Städtenamen.`
 
   try {
-    const chatResponse = await new OpenAI({ apiKey: process.env.OPENAI_API_KEY }).chat.completions.create({
+    const chatResponse = await new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 15000, maxRetries: 0 }).chat.completions.create({
       model: 'gpt-4',
       messages: [
         { role: 'system', content: systemPrompt },

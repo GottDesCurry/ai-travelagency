@@ -20,7 +20,7 @@ export default async function handler(
   }
 
   try {
-    const completion = await new OpenAI({ apiKey: process.env.OPENAI_API_KEY }).chat.completions.create({
+    const completion = await new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 15000, maxRetries: 0 }).chat.completions.create({
       model: 'gpt-4o',
       messages: [
         {
