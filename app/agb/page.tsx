@@ -12,7 +12,7 @@ export default async function AGBPage() {
   const fileContents = fs.readFileSync(filePath, 'utf8')
 
   return (
-    <section className="max-w-5xl mx-auto p-6">
+    <section id="terms" className="max-w-5xl mx-auto p-6">
       <div className="prose prose-lg">
         <ReactMarkdown>{fileContents}</ReactMarkdown>
       </div>

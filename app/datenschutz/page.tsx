@@ -27,6 +27,7 @@ export default async function DatenschutzPage() {
           notwendige Cookies. Optionale Analyse- oder Marketing-Cookies sind
           derzeit nicht vorgesehen.
         </p>
+        <p className="mb-3">Wenn du eine Suche ausdrücklich speicherst, werden deren Formularangaben lokal in diesem Browser abgelegt. Du kannst einzelne oder alle gespeicherten Suchen auf der Startseite löschen. Es erfolgt keine Kontosynchronisierung.</p>
         <p>
           Deshalb gibt es aktuell keine optionalen Cookie-Einstellungen.
           Informationen zur Verarbeitung deiner Daten und zu deinen Rechten
