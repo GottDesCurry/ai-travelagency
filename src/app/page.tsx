@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react'
 import iataCodes from '@/data/iata-codes.json'
 import FlightCard from '@/components/FlightCard'
 import HotelCard from '@/components/HotelCard'
+import { isHotelOffer, type HotelOffer } from '@/lib/hotel-offers'
+import { flightQuery, hotelQuery, validateTravelDates } from '@/lib/trip-search'
 import { isFlightOffer, type FlightOffer } from '@/lib/flight-offers'
 
 const translateCityName = (name: string): string => {
@@ -65,14 +67,14 @@ const correctCitySpellingWithGPT = async (input: string): Promise<string> => {
 export default function Home() {
   const [origin, setOrigin] = useState('ZRH')
   const [destination, setDestination] = useState('BER')
-  const [date, setDate] = useState('2025-07-01')
+  const [date, setDate] = useState('')
   const [returnDate, setReturnDate] = useState('')
   const [people, setPeople] = useState<number>(1)
   const [searchFlights, setSearchFlights] = useState(true)
   const [searchHotels, setSearchHotels] = useState(true)
   const [prompt, setPrompt] = useState('')
   const [flightResults, setFlightResults] = useState<FlightOffer[]>([])
-  const [hotelResults, setHotelResults] = useState<any[]>([])
+  const [hotelResults, setHotelResults] = useState<HotelOffer[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -152,21 +154,22 @@ export default function Home() {
         }
       }
 
-      if (newDate && newReturnDate && newReturnDate < newDate) {
-        setError('Das Rückflugdatum darf nicht vor dem Hinflugdatum liegen.')
+      const dateError = validateTravelDates(newDate, newReturnDate, searchHotels)
+      if (dateError || !Number.isInteger(newPeople) || newPeople < 1 || newPeople > 9 || (!searchFlights && !searchHotels)) {
+        setError(dateError || 'Bitte 1–9 Erwachsene und mindestens eine Suchoption wählen.')
         return
       }
 
       const originCode = getIataCode(newOrigin) || (newOrigin.length === 3 ? newOrigin.toUpperCase() : null)
       const destinationCode = getIataCode(newDestination) || (newDestination.length === 3 ? newDestination.toUpperCase() : null)
 
-      if (!originCode || !destinationCode) {
+      if (searchFlights && (!originCode || !destinationCode)) {
         setError('Ungültiger Abflug- oder Zielort – bitte gib eine Stadt mit bekanntem Flughafen ein.')
         return
       }
 
       if (searchFlights) {
-        const combinedRes = await fetch(`/api/flights-aggregated?origin=${originCode}&destination=${destinationCode}&date=${newDate}`)
+        const combinedRes = await fetch(`/api/flights-aggregated?${flightQuery(originCode!, destinationCode!, newDate, newReturnDate, newPeople)}`)
         const combined = await combinedRes.json()
         if (!combinedRes.ok) throw new Error(combined?.error || 'Flugsuche fehlgeschlagen')
         if (!Array.isArray(combined) || !combined.every(isFlightOffer)) throw new Error('Ungültige Flugangebote')
@@ -184,23 +187,17 @@ export default function Home() {
       }
 
       if (searchHotels) {
-        const translatedCity = translateCityName(newDestination)
-        const locRes = await fetch(`/api/hotels-location?name=${translatedCity}`)
-        const locData = await locRes.json()
-        const destId = locData?.dest_id
-
-        if (!destId) {
-          setError('Kein Hotel-Ort gefunden – bitte überprüfe dein Reiseziel.')
-          return
-        }
-
-        const hotelRes = await fetch(`/api/hotels?dest_id=${destId}`)
+        const cityName = iataCodes.find(item => item.code === newDestination.toUpperCase())?.city || newDestination
+        const translatedCity = translateCityName(cityName)
+        const hotelRes = await fetch(`/api/hotels?${hotelQuery(translatedCity, newDate, newReturnDate, newPeople)}`)
         const hotels = await hotelRes.json()
-        setHotelResults(hotels?.result || [])
+        if (!hotelRes.ok) throw new Error(hotels?.error || 'Hotelsuche fehlgeschlagen')
+        if (!Array.isArray(hotels.results) || !hotels.results.every(isHotelOffer)) throw new Error('Ungültige Hotelangebote')
+        setHotelResults(hotels.results)
       }
     } catch (err) {
       console.error('Fehler bei der Suche:', err)
-      setError('Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.')
+      setError(err instanceof Error ? err.message : 'Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.')
     } finally {
       setLoading(false)
     }
