@@ -43,3 +43,24 @@ test('cancelling AI ranking does not restore already cancelled flight results',a
   await assert.rejects(client.loadFlights('',controller.signal),/abgebrochen/)
  }finally{global.fetch=previous}
 })
+test('recommendations never discard remaining offers and ranking input remains bounded',async()=>{
+ const previous=global.fetch,offers=Array.from({length:20},(_,i)=>({...offer,id:String(i),price:200-i}))
+ let ids,rankingInput
+ try {
+  global.fetch=async(url,init)=>{
+   if(url.startsWith('/api/flights'))return {ok:true,json:async()=>offers}
+   rankingInput=JSON.parse(init.body)
+   return {ok:true,json:async()=>rankingInput.slice(0,3).map(value=>({...value,price:1}))}
+  }
+  const result=await client.loadFlights('',undefined,value=>{ids=value})
+  assert.equal(result.length,20);assert.equal(rankingInput.length,15)
+  assert.deepEqual(ids,['19','18','17']);assert.equal(result[0],offers[19]);assert.equal(result[19],offers[0])
+ }finally{global.fetch=previous}
+})
+test('AI failure retains more than three original search results',async()=>{
+ const previous=global.fetch,offers=Array.from({length:6},(_,i)=>({...offer,id:String(i),price:100+i}))
+ try {
+  global.fetch=async url=>url.startsWith('/api/flights')?{ok:true,json:async()=>offers}:{ok:false,status:502,json:async()=>({error:'AI down'})}
+  assert.deepEqual(await client.loadFlights(''),offers)
+ }finally{global.fetch=previous}
+})

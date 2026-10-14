@@ -59,3 +59,8 @@ test('a requested return trip never silently becomes a one-way offer',()=>{
  const invalid=raw('bad',100);invalid.itineraries.push({duration:'PT1H',segments:[]})
  assert.throws(()=>normalizeFlightOffers({data:[invalid]},true))
 })
+test('normalization retains valid offers beyond the former fifteen-offer limit', () => {
+ const data=Array.from({length:20},(_,i)=>raw(String(i+1),100+i))
+ const offers=normalizeFlightOffers({data})
+ assert.equal(offers.length,20);assert.equal(offers[19].id,'20')
+})

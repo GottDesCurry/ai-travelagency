@@ -59,6 +59,8 @@ export default function Home() {
   const [searchHotels, setSearchHotels] = useState(true)
   const [prompt, setPrompt] = useState('')
   const [flightResults, setFlightResults] = useState<FlightOffer[]>([])
+  const [recommendedFlightIds, setRecommendedFlightIds] = useState<string[]>([])
+  const [promptWarning, setPromptWarning] = useState('')
   const [hotelResults, setHotelResults] = useState<HotelOffer[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -90,6 +92,8 @@ export default function Home() {
     setHotelDone(false)
     setLoading(true)
     setFlightResults([])
+    setRecommendedFlightIds([])
+    setPromptWarning('')
     setHotelResults([])
 
     let newOrigin = origin.trim()
@@ -100,6 +104,7 @@ export default function Home() {
 
     try {
       if (prompt.trim() !== '') {
+        try {
         const parsed = await requestJson('/api/parse-trip', {
           signal: controller.signal,
           method: 'POST',
@@ -138,6 +143,10 @@ export default function Home() {
           newPeople = parsed.people
           setPeople(newPeople)
         }
+        } catch (err) {
+          if (controller.signal.aborted) throw err
+          setPromptWarning('Der Reisewunsch konnte nicht ausgewertet werden. Wir verwenden die Angaben in den Formularfeldern. Bitte prüfe sie vor der Buchung.')
+        }
       }
 
       const dateError = validateTravelDates(newDate, newReturnDate, searchHotels)
@@ -157,7 +166,7 @@ export default function Home() {
       const tasks: Promise<void>[] = []
       if (searchFlights) {
         tasks.push(settleSearch(
-          () => loadFlights(flightQuery(originCode!, destinationCode!, newDate, newReturnDate, newPeople), controller.signal),
+          () => loadFlights(flightQuery(originCode!, destinationCode!, newDate, newReturnDate, newPeople), controller.signal, setRecommendedFlightIds),
           offers => { setFlightResults(offers); setFlightDone(true) },
           message => { setFlightError(message); setFlightDone(true) }
         ))
@@ -250,9 +259,11 @@ export default function Home() {
           onRestore={value => {
             setOrigin(value.origin); setDestination(value.destination); setDate(value.date); setReturnDate(value.returnDate)
             setPeople(value.people); setSearchFlights(value.searchFlights); setSearchHotels(value.searchHotels); setPrompt('')
-            setFlightResults([]); setHotelResults([]); setError(''); setFlightError(''); setHotelError(''); setFlightDone(false); setHotelDone(false)
+            setFlightResults([]); setRecommendedFlightIds([]); setPromptWarning(''); setHotelResults([]); setError(''); setFlightError(''); setHotelError(''); setFlightDone(false); setHotelDone(false)
           }}
         />
+
+        {promptWarning && <p role="status" className="text-amber-800">{promptWarning}</p>}
 
         {error && (
           <div
@@ -287,9 +298,13 @@ export default function Home() {
 
       {flightResults.length > 0 && (
         <div className="w-full max-w-3xl space-y-4">
-          <h2 className="text-2xl font-semibold">✈️ Top 3 Flüge</h2>
-          {flightResults.map((flight, i) => (
-            <FlightCard key={i} flight={flight} />
+          <h2 className="text-2xl font-semibold">✈️ Flüge · {flightResults.length} Angebote</h2>
+          <p className="text-sm text-gray-600">Alle gültigen Angebote aus der aktuellen Anbieterantwort, nach Preis sortiert. Empfehlungen berücksichtigen bis zu 15 Angebote; bei KI-Ausfall werden Preis und Stopps verwendet.</p>
+          {flightResults.map(flight => (
+            <div key={flight.id}>
+              {recommendedFlightIds.includes(flight.id) && <p className="text-sm font-medium text-indigo-700">Empfohlen</p>}
+              <FlightCard flight={flight} />
+            </div>
           ))}
         </div>
       )}

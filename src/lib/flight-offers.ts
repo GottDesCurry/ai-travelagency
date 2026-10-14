@@ -69,7 +69,7 @@ export function normalizeFlightOffers(payload: unknown, requireReturn = false): 
   if (!Array.isArray(data)) throw new Error('Unexpected flight provider response')
   const offers: FlightOffer[] = []
   const ids = new Set<string>()
-  for (const raw of data.slice(0, 15)) {
+  for (const raw of data) {
     const f = record(raw)
     const outboundLeg = normalizeLeg(f.itineraries?.[0])
     const hasReturn = Array.isArray(f.itineraries) && f.itineraries.length > 1

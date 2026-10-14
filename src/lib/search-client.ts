@@ -19,18 +19,24 @@ export async function requestJson(url: string, init: RequestInit = {}, timeoutMs
     throw error
   } finally { clearTimeout(timer); init.signal?.removeEventListener('abort', cancel) }
 }
-export async function loadFlights(query: string, signal?: AbortSignal): Promise<FlightOffer[]> {
+export async function loadFlights(query: string, signal?: AbortSignal, onRecommendations?: (ids: string[]) => void): Promise<FlightOffer[]> {
   const offers = await requestJson(`/api/flights-aggregated?${query}`, { signal })
-  if (!Array.isArray(offers) || !offers.every(isFlightOffer)) throw new Error('Ungültige Flugangebote')
-  if (!offers.length) return []
+  if (!Array.isArray(offers) || !offers.every(isFlightOffer) || new Set(offers.map(offer => offer.id)).size !== offers.length) throw new Error('Ungültige Flugangebote')
+  if (!offers.length) { onRecommendations?.([]); return [] }
+  // Preserve every valid provider offer. Only the optional ranking input is bounded.
+  const sorted = [...offers].sort((a, b) => a.price - b.price || a.stops - b.stops)
+  const candidates = sorted.slice(0, 15)
+  let recommendations = fallbackFlights(candidates)
   try {
-    const ranked = await requestJson('/api/ai', { signal, method: 'POST', body: JSON.stringify(offers), headers: { 'Content-Type': 'application/json' } })
-    if (!Array.isArray(ranked) || !ranked.length || !ranked.every(isFlightOffer)) return fallbackFlights(offers)
-    // Resolve ranking back to the original search offers, including at the client boundary.
-    const originals = new Map(offers.map(offer => [offer.id, offer]))
-    if (ranked.length > 3 || new Set(ranked.map(offer => offer.id)).size !== ranked.length || ranked.some(offer => !originals.has(offer.id))) return fallbackFlights(offers)
-    return ranked.map(offer => originals.get(offer.id)!)
-  } catch (error) { if (signal?.aborted) throw error; return fallbackFlights(offers) }
+    const ranked = await requestJson('/api/ai', { signal, method: 'POST', body: JSON.stringify(candidates), headers: { 'Content-Type': 'application/json' } })
+    const originals = new Map(candidates.map(offer => [offer.id, offer]))
+    if (Array.isArray(ranked) && ranked.length === Math.min(3, candidates.length) && ranked.every(isFlightOffer) && new Set(ranked.map(offer => offer.id)).size === ranked.length && ranked.every(offer => originals.has(offer.id))) {
+      recommendations = ranked.map(offer => originals.get(offer.id)!)
+    }
+  } catch (error) { if (signal?.aborted) throw error }
+  if (signal?.aborted) throw new Error('Die Suche wurde abgebrochen.')
+  onRecommendations?.(recommendations.map(offer => offer.id))
+  return sorted
 }
 export async function loadHotels(query: string, signal?: AbortSignal): Promise<HotelOffer[]> {
   const data = await requestJson(`/api/hotels?${query}`, { signal }, 35000)
