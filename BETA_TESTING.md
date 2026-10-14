@@ -37,6 +37,18 @@ HTTP/browser checks deliberately remove RapidAPI/OpenAI credentials. CI uploads 
 
 ## After the actual API access is restored
 
+Check the exact preview URL without any provider requests:
+
+    npm run verify:beta -- --url https://YOUR-PREVIEW.vercel.app
+
+After restoring provider access, explicitly enable real searches (may consume provider quota):
+
+    npm run verify:beta -- --url https://YOUR-PREVIEW.vercel.app --live --origin ZRH --destination BER --city Berlin --date 2026-11-10 --return-date 2026-11-14
+
+Use future dates when repeating this check. The command checks access and legal/help pages, then one-way and roundtrip searches for one/two adults and a hotel stay for two adults. Protection redirects, empty results, wrong flight routes/dates, invalid offers and missing supplier links fail acceptance. It stops further flight calls on access/quota failures. Reports omit upstream bodies and credentials. No secrets belong in command arguments.
+
+This automated check does not prove the supplier's full passenger/stay price basis, correct hotel location, or final link destination. The report lists the remaining manual release checks. A passing access-only run is not a live-search release approval.
+
 Use server-side development/Preview variables; never commit secrets or use NEXT_PUBLIC_ keys.
 Verify the subscribed product's endpoints and response envelopes before altering adapters. Test One-way/Roundtrip, one/multiple adults, hotel-only/combined searches, price/currency/fees, location matching and supplied HTTPS provider links. Keep Preview/Production budgets appropriately scoped.
 
