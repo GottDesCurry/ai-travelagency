@@ -51,3 +51,33 @@ test('all offers remain visible when AI parsing and ranking fail',async({page})=
  await expect(page.locator('a[href^="https://example.com/offer/"]')).toHaveCount(20)
  await expect(page.getByText(/Wir verwenden die Angaben in den Formularfeldern/)).toBeVisible()
 })
+test('destination choice, keyboard search, sorting and round-trip direct filter work without mobile overflow',async({page},testInfo)=>{
+ const leg={duration:'PT2H',stops:0,departure:{iataCode:'BER',at:'2099-01-05T10:00:00'},arrival:{iataCode:'ZRH',at:'2099-01-05T12:00:00'},airline:'LX',airlineCode:'LX',segments:[{departure:{iataCode:'BER',at:'2099-01-05T10:00:00'},arrival:{iataCode:'ZRH',at:'2099-01-05T12:00:00'},airlineCode:'LX'}]}
+ const base={currency:'CHF',duration:'PT2H',stops:0,departure:{iataCode:'ZRH',at:'2099-01-01T10:00:00'},arrival:{iataCode:'BER',at:'2099-01-01T12:00:00'},airline:'LX',airlineCode:'LX'}
+ const offers=[{...base,id:'cheap',price:100,returnLeg:{...leg,stops:1},bookingLink:'https://example.com/cheap'},{...base,id:'direct',price:200,returnLeg:leg,bookingLink:'https://example.com/direct'}]
+ await page.route('**/api/flights-aggregated?*',route=>route.fulfill({json:offers}))
+ await page.route('**/api/ai',route=>route.fulfill({json:offers}))
+ await page.goto('/')
+ await page.getByRole('button',{name:'Barcelona als Reiseziel wählen'}).click()
+ await expect(page.getByLabel('Reiseziel',{exact:true})).toHaveValue('BCN')
+ await expect(page.getByLabel('Reiseziel',{exact:true})).toBeFocused()
+ await page.getByLabel('Reiseziel',{exact:true}).fill('BER')
+ await fillTrip(page);await page.getByLabel('Hotels suchen').uncheck()
+ await page.getByLabel('Erwachsene (1–9)',{exact:true}).press('Enter')
+ await expect(page.getByRole('heading',{name:'Flüge · 2 Angebote'})).toBeVisible()
+ await page.getByLabel('Sortieren nach').selectOption('price-desc')
+ await expect(page.locator('.FlightCard').first().locator('a')).toHaveAttribute('href','https://example.com/direct')
+ await page.getByLabel('Nur Direktflüge (Hin- und Rückflug)').check()
+ await expect(page.locator('.FlightCard')).toHaveCount(1)
+ await expect(page.locator('.FlightCard a')).toHaveAttribute('href','https://example.com/direct')
+ await page.getByLabel('Nur Direktflüge (Hin- und Rückflug)').uncheck()
+ await expect(page.locator('.FlightCard')).toHaveCount(2)
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy()
+ await page.screenshot({path:testInfo.outputPath('beta-desktop-or-mobile.png'),fullPage:true})
+})
+test('reduced-motion preference disables the decorative plane animation',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'})
+ await page.goto('/')
+ await expect(page.getByRole('heading',{name:'Weniger planen. Mehr erleben.'})).toBeVisible()
+ expect(await page.locator('.hero-plane').evaluate(element=>getComputedStyle(element).animationName)).toBe('none')
+})

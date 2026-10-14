@@ -20,10 +20,10 @@ export default function SavedSearches({ current, onRestore, disabled }: { curren
   if(!isSavedSearch(value)){setMessage('Bitte zuerst gültige Reiseangaben mit Datum eingeben.');return}
   if(persist([value,...items].slice(0,10)))setMessage('Suche auf diesem Gerät gespeichert. Es wurde nichts gebucht.')
  }
- return <section aria-labelledby="saved-searches-title" className="space-y-3 border-t pt-4">
+ return <section aria-labelledby="saved-searches-title" className="saved-searches space-y-3">
   <h2 id="saved-searches-title" className="font-semibold">Gespeicherte Suchen</h2>
   <p className="text-xs text-gray-600">Optional: bis zu zehn Suchen nur in diesem Browser speichern. Keine Preise, Reisebeschreibungen oder Buchungsdaten. Auf geteilten Geräten anschließend löschen.</p>
-  <button type="button" disabled={!ready || disabled} onClick={save} className="rounded border px-3 py-2 disabled:opacity-50">Aktuelle Suche speichern</button>
+  <button type="button" disabled={!ready || disabled} onClick={save} className="secondary-button">Aktuelle Suche speichern</button>
   {message && <p role="status" className="text-sm">{message}</p>}
   <ul className="space-y-2">
    {items.map(item => <li key={item.id} className="flex flex-wrap items-center gap-2 text-sm">

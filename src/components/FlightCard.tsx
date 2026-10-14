@@ -19,12 +19,13 @@ function Leg({ leg, label }: { leg: FlightLeg; label: string }) {
     </ol>}
   </section>
 }
-export default function FlightCard({ flight }: { flight: FlightOffer }) {
+export default function FlightCard({ flight, recommended = false }: { flight: FlightOffer; recommended?: boolean }) {
   const outbound = flight.outboundLeg || { duration: flight.duration, stops: flight.stops, departure: flight.departure, arrival: flight.arrival, airline: flight.airline, airlineCode: flight.airlineCode, segments: [] }
-  return <article className="FlightCard border border-blue-100 bg-white/70 rounded-xl p-5 shadow-md space-y-4">
+  return <article className="FlightCard offer-card space-y-4">
+    {recommended && <span className="recommendation">Empfohlen</span>}
     <Leg leg={outbound} label="Hinflug" />
     {flight.returnLeg && <Leg leg={flight.returnLeg} label="Rückflug" />}
-    <p className="font-semibold">{flight.price.toLocaleString('de-CH', { minimumFractionDigits: 2 })} {flight.currency} laut Anbieter{flight.returnLeg ? ' für Hin- und Rückflug' : ''}</p>
+    <p className="offer-price">{flight.price.toLocaleString('de-CH', { minimumFractionDigits: 2 })} {flight.currency} laut Anbieter{flight.returnLeg ? ' für Hin- und Rückflug' : ''}</p>
     <BookingLink url={flight.bookingLink} label="Zum Flugangebot" />
   </article>
 }

@@ -6,6 +6,7 @@ import iataCodes from '@/data/iata-codes.json'
 import FlightCard from '@/components/FlightCard'
 import HotelCard from '@/components/HotelCard'
 import SavedSearches from '@/components/SavedSearches'
+import TravelLanding, { DestinationIdeas } from '@/components/TravelLanding'
 import type { HotelOffer } from '@/lib/hotel-offers'
 import { flightQuery, hotelQuery, validateTravelDates } from '@/lib/trip-search'
 import type { FlightOffer } from '@/lib/flight-offers'
@@ -61,6 +62,8 @@ export default function Home() {
   const [flightResults, setFlightResults] = useState<FlightOffer[]>([])
   const [recommendedFlightIds, setRecommendedFlightIds] = useState<string[]>([])
   const [promptWarning, setPromptWarning] = useState('')
+  const [directOnly, setDirectOnly] = useState(false)
+  const [flightSort, setFlightSort] = useState<'price' | 'price-desc' | 'stops'>('price')
   const [hotelResults, setHotelResults] = useState<HotelOffer[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -190,124 +193,87 @@ export default function Home() {
     }
   }
 
-  return (
-    <div className="flex flex-col items-center justify-center px-4 space-y-12 w-full">
-      <div className="bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-6 md:p-10 max-w-xl w-full space-y-6">
-        <p className="text-sm text-gray-500">
-          z. B. Ich reise mit 3 Freunden nach Malaga vom 10. bis 14. August
-        </p>
-        <label htmlFor="trip-prompt" className="block text-sm font-medium">Reisewunsch (optional)</label>
-        <textarea
-          id="trip-prompt"
-          maxLength={4000}
-          value={prompt}
-          onChange={e => setPrompt(e.target.value)}
-          placeholder="Reiseplan beschreiben..."
-          className="w-full border border-gray-300 rounded px-4 py-2 text-sm"
-          rows={2}
-        />
-        <div className="grid grid-cols-2 gap-4">
-          <label className="text-sm">Abflugort
-            <input value={origin} maxLength={120} onChange={e => setOrigin(e.target.value)} placeholder="ZRH" className="w-full px-4 py-2 rounded border border-gray-300" />
-          </label>
-          <label className="text-sm">Reiseziel
-            <input value={destination} maxLength={120} onChange={e => setDestination(e.target.value)} placeholder="BER" className="w-full px-4 py-2 rounded border border-gray-300" />
-          </label>
-          <label className="text-sm">Hinreise / Check-in
-            <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full px-4 py-2 rounded border border-gray-300" />
-          </label>
-          <label className="text-sm">Rückreise / Check-out
-            <input type="date" value={returnDate} onChange={e => setReturnDate(e.target.value)} className="w-full px-4 py-2 rounded border border-gray-300" />
-          </label>
-        </div>
-        <label htmlFor="adults" className="block text-sm font-medium">Erwachsene (1–9)</label>
-        <input
-          id="adults"
-          type="number"
-          min={1}
-          max={9}
-          step={1}
-          value={people || ''}
-          onChange={e => setPeople(parseInt(e.target.value))}
-          placeholder="Anzahl Personen"
-          className="w-full px-4 py-2 rounded border border-gray-300"
-        />
-        <div className="flex items-center gap-6">
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={searchFlights} onChange={e => setSearchFlights(e.target.checked)} />
-            ✈️ Flüge suchen
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={searchHotels} onChange={e => setSearchHotels(e.target.checked)} />
-            🏨 Hotels suchen
-          </label>
-        </div>
-        <button
-          onClick={handleSearch}
-          disabled={loading}
-          aria-busy={loading}
-          className="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition"
-        >
-          🔍 Suche starten
-        </button>
-        {loading && <button type="button" onClick={() => activeSearch.current?.abort()} className="w-full border border-gray-400 rounded py-2">Suche abbrechen</button>}
-        <p className="text-sm text-gray-600">Die Beta sucht Flug- und Hotelangebote. Du buchst und bezahlst anschließend beim jeweiligen Anbieter. Verfügbarkeit, Endpreis und Bedingungen bitte dort prüfen.</p>
+  const visibleFlights = flightResults.filter(flight => !directOnly || (flight.stops === 0 && (!flight.returnLeg || flight.returnLeg.stops === 0))).sort((a, b) => {
+    if (flightSort === 'price-desc') return b.price - a.price
+    if (flightSort === 'stops') return (a.stops + (a.returnLeg?.stops || 0)) - (b.stops + (b.returnLeg?.stops || 0)) || a.price - b.price
+    return a.price - b.price
+  })
 
-        <SavedSearches
-          current={{ origin, destination, date, returnDate, people, searchFlights, searchHotels }}
-          disabled={loading}
-          onRestore={value => {
+  const chooseDestination = (code: string) => {
+    setDestination(code)
+    setPrompt('')
+    const field = document.getElementById('destination')
+    field?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'center' })
+    field?.focus({ preventScroll: true })
+  }
+
+  return <>
+    <TravelLanding />
+    <section id="reise-suche" className="section-wrap" aria-labelledby="search-title">
+      <div className="section-heading"><div><p className="eyebrow">VON DER IDEE ZUR REISE</p><h2 id="search-title">Wohin zieht es dich?</h2></div><p>Dein Ziel. Deine Daten. Deine Auswahl.</p></div>
+      <div className="planner-card planner-grid">
+        <div>
+          <form onSubmit={event => { event.preventDefault(); void handleSearch() }} className="planner-form">
+            <fieldset disabled={loading} className="planner-form">
+              <legend className="sr-only">Reisedaten</legend>
+              <label htmlFor="trip-prompt"><span className="field-label">Reisewunsch (optional)</span>
+                <textarea id="trip-prompt" maxLength={4000} value={prompt} onChange={event => setPrompt(event.target.value)} placeholder="Zum Beispiel: Zwei Erwachsene ab Zürich nach Berlin vom 10. bis 14. November." className="travel-input prompt-field" rows={3}/>
+              </label>
+              <p className="form-note">Die KI kann deine Reisedaten ergänzen. Du kannst die Felder auch selbst ausfüllen.</p>
+              <div className="field-grid">
+                <label><span className="field-label">Abflugort</span><input value={origin} maxLength={120} onChange={event => setOrigin(event.target.value)} placeholder="ZRH / Zürich" className="travel-input"/></label>
+                <label htmlFor="destination"><span className="field-label">Reiseziel</span><input id="destination" value={destination} maxLength={120} onChange={event => setDestination(event.target.value)} placeholder="BER / Berlin" className="travel-input"/></label>
+                <label><span className="field-label">Hinreise / Check-in</span><input type="date" value={date} onChange={event => setDate(event.target.value)} className="travel-input"/></label>
+                <label><span className="field-label">Rückreise / Check-out</span><input type="date" value={returnDate} onChange={event => setReturnDate(event.target.value)} className="travel-input"/></label>
+                <label htmlFor="adults"><span className="field-label">Erwachsene (1–9)</span><input id="adults" type="number" min={1} max={9} step={1} value={people || ''} onChange={event => setPeople(Number(event.target.value))} className="travel-input"/></label>
+              </div>
+              <div className="search-options">
+                <label><input type="checkbox" checked={searchFlights} onChange={event => setSearchFlights(event.target.checked)}/> Flüge suchen</label>
+                <label><input type="checkbox" checked={searchHotels} onChange={event => setSearchHotels(event.target.checked)}/> Hotels suchen</label>
+              </div>
+              <p className="form-note">Hotelsuche: ein Zimmer für alle Erwachsenen. Bitte ein Check-out-Datum angeben.</p>
+              <button type="submit" disabled={loading} aria-busy={loading} className="primary-button">{loading ? 'Angebote werden gesucht …' : 'Suche starten'} <span aria-hidden="true">↗</span></button>
+            </fieldset>
+            {loading && <button type="button" onClick={() => activeSearch.current?.abort()} className="secondary-button">Suche abbrechen</button>}
+            {promptWarning && <p role="status" className="notice notice-warning">{promptWarning}</p>}
+            {error && <p role="alert" className="notice">{error}</p>}
+            {loading && <p role="status" className="loading-state">Wir suchen deine Flug- und Hotelangebote …</p>}
+            {flightError && <p role="alert" className="notice">Flüge: {flightError}</p>}
+            {hotelError && <p role="alert" className="notice">Hotels: {hotelError}</p>}
+            {flightDone && !flightError && flightResults.length === 0 && <p role="status" className="empty-results">Keine passenden Flüge gefunden.</p>}
+            {hotelDone && !hotelError && hotelResults.length === 0 && <p role="status" className="empty-results">Keine passenden Hotels gefunden.</p>}
+          </form>
+          <SavedSearches current={{ origin, destination, date, returnDate, people, searchFlights, searchHotels }} disabled={loading} onRestore={value => {
             setOrigin(value.origin); setDestination(value.destination); setDate(value.date); setReturnDate(value.returnDate)
             setPeople(value.people); setSearchFlights(value.searchFlights); setSearchHotels(value.searchHotels); setPrompt('')
             setFlightResults([]); setRecommendedFlightIds([]); setPromptWarning(''); setHotelResults([]); setError(''); setFlightError(''); setHotelError(''); setFlightDone(false); setHotelDone(false)
-          }}
-        />
-
-        {promptWarning && <p role="status" className="text-amber-800">{promptWarning}</p>}
-
-        {error && (
-          <div
-            role="alert"
-            className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 text-sm rounded text-center"
-          >
-            {error}
-          </div>
-        )}
-
-        {loading && (
-          <div role="status" className="flex justify-center gap-2 py-4">
-            <span>Suche läuft …</span>
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-800" />
-          </div>
-        )}
-
-        {flightError && <p role="alert" className="text-red-700">Flüge: {flightError}</p>}
-        {hotelError && <p role="alert" className="text-red-700">Hotels: {hotelError}</p>}
-        {flightDone && !flightError && flightResults.length === 0 && <p role="status">Keine passenden Flüge gefunden.</p>}
-        {hotelDone && !hotelError && hotelResults.length === 0 && <p role="status">Keine passenden Hotels gefunden.</p>}
+            setDirectOnly(false); setFlightSort('price')
+          }}/>
+        </div>
+        <aside className="planner-sidebar" aria-label="So funktioniert die Suche">
+          <p className="eyebrow">ALLES IM BLICK</p><h3>Eine Reise.<br/>Viele Möglichkeiten.</h3>
+          <div className="sidebar-step"><span>1</span>Reisedaten eingeben</div><div className="sidebar-step"><span>2</span>Flüge und Hotels vergleichen</div><div className="sidebar-step"><span>3</span>Beim Anbieter buchen</div>
+          <p className="sidebar-rule">Du buchst und bezahlst direkt beim jeweiligen Anbieter. Verfügbarkeit, Endpreis und Bedingungen bitte dort prüfen.</p>
+        </aside>
       </div>
-
-      {hotelResults.length > 0 && (
-        <div className="w-full max-w-3xl space-y-4">
-          <h2 className="text-2xl font-semibold">🏨 Hotelvorschläge</h2>
-          {hotelResults.map((hotel, i) => (
-            <HotelCard key={i} hotel={hotel} />
-          ))}
-        </div>
-      )}
-
-      {flightResults.length > 0 && (
-        <div className="w-full max-w-3xl space-y-4">
-          <h2 className="text-2xl font-semibold">✈️ Flüge · {flightResults.length} Angebote</h2>
-          <p className="text-sm text-gray-600">Alle gültigen Angebote aus der aktuellen Anbieterantwort, nach Preis sortiert. Empfehlungen berücksichtigen bis zu 15 Angebote; bei KI-Ausfall werden Preis und Stopps verwendet.</p>
-          {flightResults.map(flight => (
-            <div key={flight.id}>
-              {recommendedFlightIds.includes(flight.id) && <p className="text-sm font-medium text-indigo-700">Empfohlen</p>}
-              <FlightCard flight={flight} />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
+      <p className="subtle-note" style={{ marginTop: 16 }}>Die Beta hilft dir beim Vergleichen. Buchung und Zahlung erfolgen beim Anbieter.</p>
+    </section>
+    {flightResults.length > 0 && <section className="section-wrap" aria-labelledby="flights-title">
+      <div className="section-heading"><h2 id="flights-title">Flüge · {flightResults.length} Angebote</h2><p>Alle gültigen Angebote aus der aktuellen Anbieterantwort.</p></div>
+      <div className="result-toolbar">
+        <label htmlFor="flight-sort">Sortieren nach<br/><select id="flight-sort" value={flightSort} onChange={event => setFlightSort(event.target.value as typeof flightSort)}><option value="price">Preis: günstig zuerst</option><option value="price-desc">Preis: teuer zuerst</option><option value="stops">Wenigste Zwischenstopps</option></select></label>
+        <label><input type="checkbox" checked={directOnly} onChange={event => setDirectOnly(event.target.checked)}/> Nur Direktflüge (Hin- und Rückflug)</label>
+        <p role="status" className="subtle-note">{visibleFlights.length} von {flightResults.length} Angeboten sichtbar</p>
+      </div>
+      <p className="subtle-note">Empfehlungen vergleichen eine Auswahl der günstigsten Angebote. Bei KI-Ausfall zählen Preis und Zwischenstopps.</p>
+      {visibleFlights.length === 0 ? <div className="empty-results"><p>Keine Direktflüge in diesen Angeboten gefunden.</p><button type="button" onClick={() => setDirectOnly(false)} className="secondary-button">Alle Flüge anzeigen</button></div> : <div className="offer-grid">{visibleFlights.map(flight => <div key={flight.id} className="offer-wrap">
+        <FlightCard flight={flight} recommended={recommendedFlightIds.includes(flight.id)}/>
+      </div>)}</div>}
+    </section>}
+    {hotelResults.length > 0 && <section className="section-wrap" aria-labelledby="hotels-title">
+      <div className="section-heading"><h2 id="hotels-title">Hotels · {hotelResults.length} Angebote</h2><p>Für deinen angefragten Aufenthalt.</p></div>
+      <div className="offer-grid">{hotelResults.map(hotel => <HotelCard key={hotel.id} hotel={hotel}/>)}</div>
+    </section>}
+    <DestinationIdeas onChoose={chooseDestination} disabled={loading}/>
+  </>
 }
