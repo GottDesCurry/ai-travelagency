@@ -20,7 +20,7 @@ async function run() {
    await delay(250)
   }
   assert.ok(ready,'Server did not become ready')
-  const html=await (await fetch(base)).text();assert.ok(html.includes('Erwachsene (1'));assert.ok(html.includes('bezahlst anschließend'))
+  const html=await (await fetch(base)).text();assert.ok(html.includes('Erwachsene (1'));assert.ok(html.includes('Buchung und Zahlung erfolgen beim Anbieter.'))
   for(const path of ['/hilfe','/kontakt','/impressum','/datenschutz','/agb']) {const response=await fetch(base+path);assert.equal(response.status,200,path)}
   const contact=await (await fetch(base+'/kontakt')).text();assert.ok(!contact.includes('<form'));assert.ok(contact.includes('mailto:info@book-repeat.ch'))
   const home=await (await fetch(base)).text();for(const path of ['/partner','/firmeninfo'])assert.ok(!home.includes('href="'+path+'"'))
