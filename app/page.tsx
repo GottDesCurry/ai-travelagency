@@ -1,7 +1,8 @@
 // Testdeployment
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
+import Link from 'next/link'
 import iataCodes from '@/data/iata-codes.json'
 import FlightCard from '@/components/FlightCard'
 import HotelCard from '@/components/HotelCard'
@@ -67,6 +68,8 @@ export default function Home() {
   const [hotelResults, setHotelResults] = useState<HotelOffer[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [invalidFields, setInvalidFields] = useState<string[]>([])
+  const errorSummary = useRef<HTMLParagraphElement>(null)
 
   const [flightError, setFlightError] = useState('')
   const [hotelError, setHotelError] = useState('')
@@ -75,6 +78,9 @@ export default function Home() {
   const searchInProgress = useRef(false)
   const activeSearch = useRef<AbortController | null>(null)
   useEffect(() => () => activeSearch.current?.abort(), [])
+  useEffect(() => {
+    if (error && !loading) errorSummary.current?.focus()
+  }, [error, loading])
 
   const getIataCode = (cityName: string): string | null => {
     const match = iataCodes.find(
@@ -89,6 +95,7 @@ export default function Home() {
     const controller = new AbortController()
     activeSearch.current = controller
     setError('')
+    setInvalidFields([])
     setFlightError('')
     setHotelError('')
     setFlightDone(false)
@@ -154,6 +161,7 @@ export default function Home() {
 
       const dateError = validateTravelDates(newDate, newReturnDate, searchHotels)
       if (dateError || !Number.isInteger(newPeople) || newPeople < 1 || newPeople > 9 || (!searchFlights && !searchHotels)) {
+        setInvalidFields(dateError ? ['departure-date', 'return-date'] : !Number.isInteger(newPeople) || newPeople < 1 || newPeople > 9 ? ['adults'] : ['search-flights', 'search-hotels'])
         setError(dateError || 'Bitte 1–9 Erwachsene und mindestens eine Suchoption wählen.')
         return
       }
@@ -161,8 +169,14 @@ export default function Home() {
       const originCode = getIataCode(newOrigin) || (newOrigin.length === 3 ? newOrigin.toUpperCase() : null)
       const destinationCode = getIataCode(newDestination) || (newDestination.length === 3 ? newDestination.toUpperCase() : null)
 
-      if (searchFlights && (!originCode || !destinationCode)) {
-        setError('Ungültiger Abflug- oder Zielort – bitte gib eine Stadt mit bekanntem Flughafen ein.')
+      if (searchFlights && (!originCode || !destinationCode || !/^[A-Z]{3}$/.test(originCode) || !/^[A-Z]{3}$/.test(destinationCode) || originCode === destinationCode)) {
+        setInvalidFields(['origin', 'destination'])
+        setError('Bitte zwei unterschiedliche Städte oder gültige Flughafencodes eingeben.')
+        return
+      }
+      if (searchHotels && !newDestination.trim()) {
+        setInvalidFields(['destination'])
+        setError('Bitte ein Reiseziel für die Hotelsuche eingeben.')
         return
       }
 
@@ -193,10 +207,14 @@ export default function Home() {
     }
   }
 
-  const visibleFlights = flightResults.filter(flight => !directOnly || (flight.stops === 0 && (!flight.returnLeg || flight.returnLeg.stops === 0))).sort((a, b) => {
+  const visibleFlights = useMemo(() => flightResults.filter(flight => !directOnly || (flight.stops === 0 && (!flight.returnLeg || flight.returnLeg.stops === 0))).sort((a, b) => {
     if (flightSort === 'price-desc') return b.price - a.price
     if (flightSort === 'stops') return (a.stops + (a.returnLeg?.stops || 0)) - (b.stops + (b.returnLeg?.stops || 0)) || a.price - b.price
     return a.price - b.price
+  }), [flightResults, directOnly, flightSort])
+  const fieldAccessibility = (id: string) => ({
+    'aria-invalid': invalidFields.includes(id) || undefined,
+    'aria-describedby': invalidFields.includes(id) ? 'search-error' : undefined,
   })
 
   const chooseDestination = (code: string) => {
@@ -221,23 +239,23 @@ export default function Home() {
               </label>
               <p className="form-note">Die KI kann deine Reisedaten ergänzen. Du kannst die Felder auch selbst ausfüllen.</p>
               <div className="field-grid">
-                <label><span className="field-label">Abflugort</span><input value={origin} maxLength={120} onChange={event => setOrigin(event.target.value)} placeholder="ZRH / Zürich" className="travel-input"/></label>
-                <label htmlFor="destination"><span className="field-label">Reiseziel</span><input id="destination" value={destination} maxLength={120} onChange={event => setDestination(event.target.value)} placeholder="BER / Berlin" className="travel-input"/></label>
-                <label><span className="field-label">Hinreise / Check-in</span><input type="date" value={date} onChange={event => setDate(event.target.value)} className="travel-input"/></label>
-                <label><span className="field-label">Rückreise / Check-out</span><input type="date" value={returnDate} onChange={event => setReturnDate(event.target.value)} className="travel-input"/></label>
-                <label htmlFor="adults"><span className="field-label">Erwachsene (1–9)</span><input id="adults" type="number" min={1} max={9} step={1} value={people || ''} onChange={event => setPeople(Number(event.target.value))} className="travel-input"/></label>
+                <label htmlFor="origin"><span className="field-label">Abflugort</span><input id="origin" {...fieldAccessibility('origin')} value={origin} maxLength={120} onChange={event => setOrigin(event.target.value)} placeholder="ZRH / Zürich" className="travel-input"/></label>
+                <label htmlFor="destination"><span className="field-label">Reiseziel</span><input id="destination" {...fieldAccessibility('destination')} value={destination} maxLength={120} onChange={event => setDestination(event.target.value)} placeholder="BER / Berlin" className="travel-input"/></label>
+                <label htmlFor="departure-date"><span className="field-label">Hinreise / Check-in</span><input id="departure-date" {...fieldAccessibility('departure-date')} type="date" value={date} onChange={event => setDate(event.target.value)} className="travel-input"/></label>
+                <label htmlFor="return-date"><span className="field-label">Rückreise / Check-out</span><input id="return-date" {...fieldAccessibility('return-date')} type="date" value={returnDate} onChange={event => setReturnDate(event.target.value)} className="travel-input"/></label>
+                <label htmlFor="adults"><span className="field-label">Erwachsene (1–9)</span><input id="adults" {...fieldAccessibility('adults')} type="number" min={1} max={9} step={1} value={people || ''} onChange={event => setPeople(Number(event.target.value))} className="travel-input"/></label>
               </div>
               <div className="search-options">
-                <label><input type="checkbox" checked={searchFlights} onChange={event => setSearchFlights(event.target.checked)}/> Flüge suchen</label>
-                <label><input type="checkbox" checked={searchHotels} onChange={event => setSearchHotels(event.target.checked)}/> Hotels suchen</label>
+                <label><input id="search-flights" {...fieldAccessibility('search-flights')} type="checkbox" checked={searchFlights} onChange={event => setSearchFlights(event.target.checked)}/> Flüge suchen</label>
+                <label><input id="search-hotels" {...fieldAccessibility('search-hotels')} type="checkbox" checked={searchHotels} onChange={event => setSearchHotels(event.target.checked)}/> Hotels suchen</label>
               </div>
               <p className="form-note">Hotelsuche: ein Zimmer für alle Erwachsenen. Bitte ein Check-out-Datum angeben.</p>
               <button type="submit" disabled={loading} aria-busy={loading} className="primary-button">{loading ? 'Angebote werden gesucht …' : 'Suche starten'} <span aria-hidden="true">↗</span></button>
             </fieldset>
             {loading && <button type="button" onClick={() => activeSearch.current?.abort()} className="secondary-button">Suche abbrechen</button>}
             {promptWarning && <p role="status" className="notice notice-warning">{promptWarning}</p>}
-            {error && <p role="alert" className="notice">{error}</p>}
-            {loading && <p role="status" className="loading-state">Wir suchen deine Flug- und Hotelangebote …</p>}
+            {error && <p id="search-error" ref={errorSummary} tabIndex={-1} role="alert" className="notice">{error}</p>}
+            <p role="status" aria-atomic="true" className="loading-state">{loading ? `Wir suchen deine ${searchFlights && searchHotels ? 'Flug- und Hotelangebote' : searchFlights ? 'Flugangebote' : 'Hotelangebote'} …` : flightDone || hotelDone ? `Suche beendet. ${flightDone ? `${flightResults.length} Flugangebote. ` : ''}${hotelDone ? `${hotelResults.length} Hotelangebote.` : ''}` : ''}</p>
             {flightError && <p role="alert" className="notice">Flüge: {flightError}</p>}
             {hotelError && <p role="alert" className="notice">Hotels: {hotelError}</p>}
             {flightDone && !flightError && flightResults.length === 0 && <p role="status" className="empty-results">Keine passenden Flüge gefunden.</p>}
@@ -246,7 +264,7 @@ export default function Home() {
           <SavedSearches current={{ origin, destination, date, returnDate, people, searchFlights, searchHotels }} disabled={loading} onRestore={value => {
             setOrigin(value.origin); setDestination(value.destination); setDate(value.date); setReturnDate(value.returnDate)
             setPeople(value.people); setSearchFlights(value.searchFlights); setSearchHotels(value.searchHotels); setPrompt('')
-            setFlightResults([]); setRecommendedFlightIds([]); setPromptWarning(''); setHotelResults([]); setError(''); setFlightError(''); setHotelError(''); setFlightDone(false); setHotelDone(false)
+            setFlightResults([]); setRecommendedFlightIds([]); setPromptWarning(''); setHotelResults([]); setError(''); setInvalidFields([]); setFlightError(''); setHotelError(''); setFlightDone(false); setHotelDone(false)
             setDirectOnly(false); setFlightSort('price')
           }}/>
         </div>
@@ -257,6 +275,7 @@ export default function Home() {
         </aside>
       </div>
       <p className="subtle-note" style={{ marginTop: 16 }}>Die Beta hilft dir beim Vergleichen. Buchung und Zahlung erfolgen beim Anbieter.</p>
+      <Link href="/kontakt#beta-feedback" className="feedback-link">Problem melden oder Feedback geben</Link>
     </section>
     {flightResults.length > 0 && <section className="section-wrap" aria-labelledby="flights-title">
       <div className="section-heading"><h2 id="flights-title">Flüge · {flightResults.length} Angebote</h2><p>Alle gültigen Angebote aus der aktuellen Anbieterantwort.</p></div>

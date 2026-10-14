@@ -1,6 +1,6 @@
 # AI Travel Agency: Aufgaben bis zum Endprodukt
 
-Stand: 7. Oktober 2026. Arbeitsplan für GottDesCurry/ai-travelagency.
+Stand: 14. Oktober 2026. Arbeitsplan für GottDesCurry/ai-travelagency.
 
 Ein Hit lässt sich nicht garantieren. Wir können aber konsequent prüfen, ob Menschen damit bessere Reisen finden, der Seite vertrauen, buchen und wiederkommen. Dieser Plan umfasst Produkt, Technik, Lieferanten, Zahlung, Betreuung und Wachstum. Checkboxen sind offene Aufgaben, keine Behauptung, dass etwas bereits erledigt ist. Neue Erkenntnisse und Anbieterfreigaben verändern den Umfang.
 
@@ -21,7 +21,7 @@ Prioritäten: P0 blockiert die nächste Freigabe; P1 gehört zum ersten öffentl
 
 ## 0. Aktuellen Stand fertigstellen — P0
 
-- [ ] T001 Next.js-Sicherheitsupdate abschließen und Vercel-Vorschau erfolgreich bauen.
+- [x] T001 Next.js-Sicherheitsupdate und READY-Vorschau nachgewiesen. Testerzugang bleibt separat offen.
 - [ ] T002 Konsolidierten PR 7 gegen main prüfen, danach integrieren; alte überlappende PRs nachvollziehbar abschließen.
 - [ ] T003 Zusätzliche Funktionen aus Draft PR 1 einzeln prüfen: Reiseplan, gespeicherte Reisen, Animationen, Kontakt und Datenschutz.
 - [ ] T004 Vorschau und Produktion getrennt konfigurieren; serverseitige API-Schlüssel korrekt hinterlegen.
@@ -33,11 +33,11 @@ Prioritäten: P0 blockiert die nächste Freigabe; P1 gehört zum ersten öffentl
 - [ ] T010 src/app/api/hotels-location/route.ts auf Ortsauflösung, Sprache, mehrere Treffer und ungültige Eingaben prüfen.
 - [ ] T011 src/lib/flight-offers.ts und BookingLink mit realen, anonymisierten Anbieterfixtures absichern.
 - [ ] T012 Hin-/Rückflug, Umstiege, Zeitzonen, Gesamtpreis, mehrere Reisende und Gepäck manuell abnehmen.
-- [ ] T013 Leere Ergebnisse, Anbieterfehler, Quotenüberschreitung und langsame Antworten verständlich anzeigen.
-- [ ] T014 Verhindern, dass die KI Angebote, Preise, Buchungslinks oder Verfügbarkeit erfindet.
+- [x] T013 Leere Ergebnisse, Anbieterfehler, Quotenüberschreitung und langsame Antworten verständlich anzeigen.
+- [x] T014 Verhindern, dass die KI Angebote, Preise, Buchungslinks oder Verfügbarkeit erfindet.
 - [ ] T015 Mobile End-to-End-Suche und Weiterleitung auf iOS und Android prüfen.
 - [x] T016 CI für Tests, TypeScript, Lint und Build verbindlich machen.
-- [ ] T017 BETA_TESTING.md mit aktueller Vorschau, Testergebnissen und verbleibenden Grenzen aktualisieren.
+- [x] T017 BETA_TESTING.md mit aktueller Vorschau, Testergebnissen und verbleibenden Grenzen aktualisieren.
 
 Abnahme: Ein neuer Nutzer kann eine gültige Suche bis zum passenden Anbieterlink durchführen; Fehler lassen sich reproduzieren und zuordnen. Keine echten Zahlungen in dieser Phase.
 
@@ -75,11 +75,11 @@ Abnahme: Nutzer erklären den Nutzen selbst und wählen das Produkt für eine re
 - [ ] U013 Unsichere oder nicht aktuelle KI-Aussagen kennzeichnen und relevante Quellen verlinken.
 - [ ] U014 Favoriten, gespeicherte Reisen und Versionsverlauf entwickeln. Teilstand: lokale gespeicherte Suchen sind vorhanden; Kontosynchronisierung und Versionsverlauf bleiben offen.
 - [ ] U015 Teilen und gemeinsames Abstimmen ohne Offenlegung privater Reisedaten ermöglichen.
-- [ ] U016 Gastnutzung anbieten; Konto erst verlangen, wenn es einen klaren Nutzen hat.
+- [x] U016 Gastnutzung anbieten; Konto erst verlangen, wenn es einen klaren Nutzen hat.
 - [ ] U017 Buchungs- oder Anbieterübergang mit korrekten Daten und eindeutiger Zuständigkeit gestalten.
 - [x] U018 Ladezustände, Abbrechen und erneutes Suchen robust machen.
-- [ ] U019 Tastatur, Screenreader, Kontrast und Formulare auf Barrierefreiheit prüfen.
-- [ ] U020 Mobile Layouts, kleine Displays und langsame Verbindungen testen.
+- [ ] U019 Teilstand: Formularfehler mit Fokus und Feldzuordnung, Statusmeldungen, Tastatur und 44px-Bedienflächen umgesetzt. Vollständige Screenreader-/Kontrastabnahme bleibt offen.
+- [ ] U020 Teilstand: Desktop/Mobil-Browsertests vorhanden; zusätzliche 320px- und 2G-Prüfungen vorbereitet. Echte iOS-/Android-Geräte und gemessene Ladezeiten bleiben offen.
 - [ ] U021 Alle Texte, Datumssysteme, Zeitzonen und Währungen konsistent lokalisieren.
 - [ ] U022 Kontakt, Feedback und Problem melden jederzeit erreichbar machen. Teilstand: Hilfe und E-Mail-Übergabe vorhanden; tatsächliche Erreichbarkeit bestätigen.
 - [ ] U023 Bewertungen nur aus erlaubten Quellen nutzen; eigene Bewertungen auf Echtheit prüfen.
@@ -205,8 +205,8 @@ Dies sind Prüfaufträge an geeignete Fachpersonen, keine Feststellung, dass ein
 - [ ] R016 Schlüssel ausschließlich serverseitig speichern und Rotation planen.
 - [ ] R017 API- und KI-Missbrauch mit Rate Limits, Kostenlimits und Missbrauchserkennung begrenzen.
 - [ ] R018 Eingaben, URLs und Ausgaben validieren; SSRF und Prompt-Injection gezielt testen.
-- [ ] R019 KI darf keine unbestätigten Buchungen oder Zahlungen auslösen.
-- [ ] R020 Logs, Fehlerberichte und Analytics von vertraulichen Daten bereinigen.
+- [x] R019 KI darf keine unbestätigten Buchungen oder Zahlungen auslösen.
+- [ ] R020 Teilstand: Anbieterfehler werden ohne Upstream-Body oder Zugangsdaten protokolliert. Vollständiger Log-/Fehlerbericht-/Analytics-Audit bleibt offen.
 - [ ] R021 Sicherheitsupdates, Abhängigkeitsprüfung und Incident-Ablauf etablieren.
 - [ ] R022 Backup und Wiederherstellung testen; Rechte für Produktionssysteme minimieren.
 - [ ] R023 Sicherheitsprüfung vor direkter Zahlung durchführen und Befunde beheben.
@@ -226,8 +226,8 @@ Dies sind Prüfaufträge an geeignete Fachpersonen, keine Feststellung, dass ein
 - [ ] E011 API-, KI-, Datenbank-, E-Mail- und Hostingkosten budgetieren und begrenzen.
 - [ ] E012 Vertraglich erlaubtes Caching und Lastbegrenzung einsetzen.
 - [ ] E013 Performance auf günstigen Mobilgeräten und schwachen Netzen messen.
-- [ ] E014 Regressionstests für Preis, Währung, Daten, Belegung und Return-Legs ausbauen.
-- [ ] E015 Integrationstests, End-to-End-Tests und Zahlungsfehlfälle automatisieren.
+- [x] E014 Regressionstests für Preis, Währung, Daten, Belegung und Return-Legs ausbauen.
+- [ ] E015 Teilstand: HTTP-Smoke, Browserfälle und explizite Live-Beta-Abnahme automatisiert. Echte Lieferantenabnahme und spätere Zahlungsfehlfälle bleiben offen.
 - [ ] E016 Lasttests an realistischen Such- und Checkoutspitzen ausrichten.
 - [ ] E017 Rollback, Feature-Schalter und Notabschaltung testen.
 - [ ] E018 Produktionsmigrationen und Deploymentreihenfolge dokumentieren.
@@ -236,13 +236,13 @@ Dies sind Prüfaufträge an geeignete Fachpersonen, keine Feststellung, dass ein
 
 ## 8. Vertrauen und Marke — P1
 
-- [ ] V001 Seriöses, wiedererkennbares Erscheinungsbild und klare Startseite entwickeln.
+- [x] V001 Seriöses, wiedererkennbares Erscheinungsbild und klare Startseite entwickeln.
 - [ ] V002 In wenigen Sätzen erklären, was die Seite leistet und wer Vertragspartner ist.
 - [ ] V003 Echte Firma, Kontaktmöglichkeiten und Supportzuständigkeit sichtbar machen.
 - [ ] V004 Geschäftsmodell und Affiliate-Beziehungen transparent erklären.
 - [ ] V005 KI-Empfehlungen von bezahlter Platzierung unterscheidbar halten.
 - [ ] V006 Angebote mit nachvollziehbaren Quellen statt unbelegten Vertrauenssiegeln zeigen.
-- [ ] V007 Keine erfundenen Reviews, Verknappung oder Nutzerzahlen einsetzen.
+- [x] V007 Keine erfundenen Reviews, Verknappung oder Nutzerzahlen einsetzen.
 - [ ] V008 Gebühren und Stornobedingungen vor dem Abschluss erklären.
 - [ ] V009 Gute Reisebeispiele mit echten Grenzen und Aktualisierungsdatum veröffentlichen.
 - [ ] V010 Nutzertests auf Verständnis und Vertrauen auswerten.
@@ -339,7 +339,7 @@ Dies sind Prüfaufträge an geeignete Fachpersonen, keine Feststellung, dass ein
 
 ## Die nächsten zehn Aufgaben
 
-1. T001: Vercel-Build reparieren und Vorschau prüfen.
+1. T004/T005: Funktionierenden Testerzugang zum geprüften Preview-Commit sicherstellen.
 2. T004/T006: Schlüssel, Anbieterrechte und API-Abhängigkeiten klären.
 3. T007–T012: Suche mit echten Antworten von Ende zu Ende abnehmen.
 4. T002/T003: PRs integrieren und zusätzliche Funktionen geordnet übernehmen.

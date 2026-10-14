@@ -9,7 +9,9 @@ Target: closed beta for 5–10 testers on 17 October 2026. PR #7 / fix/return-fl
 - Price/stops sorting, roundtrip-aware direct-flight filter, desktop/mobile layout and keyboard submission.
 - Independent flight/hotel errors, cancellation, bounded requests, saved searches, manual fallback on AI input/ranking errors.
 - GitHub Actions at UI commit 2ac532561df05b4f68ec342d2b4788319661668c succeeded: 37 regression tests, TypeScript, lint, build, HTTP smoke and 14 browser cases. Desktop/mobile screenshots visually inspected.
-- Additional provider error classification is covered by new regression tests; consult the CI run at the actual release commit for final validation.
+- Current local validation: 46 regression tests, TypeScript, lint and production build pass. Access-only and live beta checks are documented below.
+- New browser checks cover JavaScript-disabled access, 2G intro bypass, validation focus/field associations, hotel-only status announcements, 320px layout and feedback. Consult the CI run at the actual release commit for final browser validation.
+- Tester quickstart is on /hilfe; anonymous feedback template on /kontakt#beta-feedback. Operator protocol: docs/BETA_FEEDBACK.md.
 
 ## Live release blockers: confirmed on 14 October
 

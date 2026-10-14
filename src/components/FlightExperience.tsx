@@ -13,7 +13,8 @@ export default function FlightExperience({ children }: { children: React.ReactNo
   const [planeReady, setPlaneReady] = useState(false)
   const [skyReady, setSkyReady] = useState(false)
   const skipButton = useRef<HTMLButtonElement>(null)
-  const active = pathname === '/' && phase !== 'done'
+  // Server-rendered content stays usable before JavaScript or preference checks.
+  const active = pathname === '/' && phase !== 'checking' && phase !== 'done'
 
   const finish = useCallback(() => {
     setPhase('done')
@@ -23,16 +24,16 @@ export default function FlightExperience({ children }: { children: React.ReactNo
   useEffect(() => {
     if (pathname !== '/') { setPhase('done'); return }
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection
     let seen = false
     try { seen = sessionStorage.getItem(SESSION_KEY) === 'seen' } catch { /* Storage is optional. */ }
-    if (motion.matches || connection?.saveData || seen) { setPhase('done'); return }
+    if (motion.matches || connection?.saveData || ['slow-2g', '2g'].includes(connection?.effectiveType || '') || seen) { setPhase('done'); return }
     try { sessionStorage.setItem(SESSION_KEY, 'seen') } catch { /* Playback still has a time limit. */ }
     setPhase('loading')
-    const onMotionChange = () => { if (motion.matches) setPhase('done') }
+    const onMotionChange = () => { if (motion.matches) finish() }
     motion.addEventListener('change', onMotionChange)
     return () => motion.removeEventListener('change', onMotionChange)
-  }, [pathname])
+  }, [pathname, finish])
 
   useEffect(() => {
     if (phase !== 'loading') return

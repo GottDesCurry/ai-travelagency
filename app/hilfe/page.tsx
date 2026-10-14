@@ -13,6 +13,16 @@ const answers = [
 export default function HelpPage() {
  return <section className="max-w-3xl mx-auto p-6 space-y-6">
   <h1 className="text-3xl font-bold">Hilfe zur Beta</h1>
+  <section aria-labelledby="beta-quickstart" className="space-y-3">
+    <h2 id="beta-quickstart" className="text-xl">Dein erster Test in fünf Minuten</h2>
+    <ol className="list-decimal pl-6 space-y-2">
+      <li>Wähle eine Reise für Erwachsene, gib Ziel und zukünftige Reisedaten ein und starte die Suche.</li>
+      <li>Prüfe Flüge und Hotels getrennt. Sortiere Flüge nach Preis und teste den Direktflugfilter.</li>
+      <li>Speichere die Suche und übernimm sie nach dem Neuladen. Auf geteilten Geräten anschließend löschen.</li>
+      <li>Falls echte Angebote verfügbar sind: Öffne einen Anbieterlink und vergleiche Daten, Gesamtpreis und Bedingungen. Für den Test ist kein Kauf nötig.</li>
+      <li>Melde unverständliche Schritte und Fehlermeldungen über die Kontaktseite. Gesperrte Anbieter können wir nicht durch echte Suchergebnisse ersetzen.</li>
+    </ol>
+  </section>
   {answers.map(([question,answer]) => <details key={question} className="rounded border p-4"><summary className="cursor-pointer font-medium">{question}</summary><p className="mt-3">{answer}</p></details>)}
   <Link href="/kontakt" className="text-blue-700 underline">Kontakt und Fehler melden</Link>
  </section>

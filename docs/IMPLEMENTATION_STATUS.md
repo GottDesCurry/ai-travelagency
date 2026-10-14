@@ -1,61 +1,47 @@
 # Umsetzung des Masterplans
 
-Aktueller Live-Stand vom 14. Oktober 2026: [BETA_LIVE_VALIDATION_2026-10-14.md](BETA_LIVE_VALIDATION_2026-10-14.md). Flug-/Hotelzugang ist wegen fehlendem RapidAPI-Produktabonnement gesperrt; OpenAI meldet fehlendes API-Guthaben. Die bisherigen UI-/Build-/Testarbeiten ersetzen diese offenen Zugänge nicht.
+Stand: 14. Oktober 2026. Basis: PR #7 / `fix/return-flight-display`. Kein Merge nach main und keine öffentliche Freigabe.
 
-Historischer Umsetzungsstand: 7. Oktober 2026. Verbindliche Aufgabenliste: [MASTERPLAN.md](MASTERPLAN.md).
+## Abgeschlossen und nachgewiesen
 
-## Abgeschlossen und lokal geprüft
+- Next.js 15.5.27; Produktionsbuild, TypeScript, Lint und HTTP-Smoke bestanden am bisherigen UI-Stand. Letzte UI-Version 29ad62e hatte erfolgreiche CI und ein READY-Vercel-Deployment.
+- 46 Regressionstests bestehen lokal, einschließlich der neuen Beta-Abnahme. Der neue UI-Block wird zusätzlich durch CI-Browserprüfungen verifiziert.
+- Futuristisches blaues Design; Original-Flugzeug und Wolken als Bildassets. Das aktuelle Intro ist eine Bildanimation; das gewünschte realistische Video bleibt offen.
+- Alle gültigen Flugangebote bleiben erhalten. Preis-/Stoppsortierung, Hin-/Rückflugfilter, optionale Empfehlungen mit sicherem KI-Fallback.
+- Unabhängige Flug-/Hotelsuche, Zeitlimits, Abbrechen, Fehler-/Leerzustände, Validierung und lokale Speicherung von bis zu zehn Suchen.
+- KI kann weder Anbieterpreise überschreiben noch Angebote erfinden. Gesperrte APIs und fehlendes Guthaben werden ohne vertrauliche Lieferantendetails behandelt.
+- Hilfe, E-Mail-Kontakt, Feedbackvorlage, Browser-Testaufgaben und Betreiber-Auswertung vorhanden. Erreichbarkeit und Firmenangaben vom Betreiber noch zu bestätigen.
+- `npm run verify:beta`: prüft Deploymentzugang; mit ausdrücklichem `--live` echte Flug-/Hotelantworten. Kein erfolgreicher Live-Nachweis bisher.
 
-- T001: Next.js wurde auf 15.5.27 aktualisiert. App-Routen liegen jetzt unter app/, wodurch der zuvor beobachtete Fehler bei generierten Routentypen umgangen wird.
-- 34 Regressionstests, TypeScript, Lint, Produktionsbuild und HTTP-Smoke (Startseite plus fünf Infoseiten und zehn API-Fälle) bestehen lokal.
-- Flug-Endpunkte teilen denselben Adapter; der Legacy-Endpunkt erstellt keine Buchung.
-- Flughafenparameter, Personenanzahl, Daten und KI-Ausgaben werden serverseitig geprüft.
-- Hotel-Ortsnamen werden sicher codiert; fehlende Konfiguration, leere Ergebnisse und Anbieterfehler werden getrennt behandelt.
-- Suchformular hat sichtbare Feldbeschriftungen und erklärt die Anbieterübergabe.
+## Neuer kostenloser Verbesserungsblock
 
-- U018: Suche abbrechen und passende Zeitlimits für die zweistufige Hotelsuche.
-- U014: bis zu zehn Suchen lokal speichern, übernehmen und löschen; keine Kontosynchronisierung.
-- U022/S006: Hilfeseite und ehrlicher E-Mail-Kontakt statt eines funktionslosen Formulars.
-- Navigation: fehlende Footerziele und AGB-Anker repariert; fiktive Telefonnummern entfernt.
-- Metadaten: fehlendes OG-Bild entfernt, absolute Basis gesetzt, doppelte Head-Tags entfernt.
+- Ohne JavaScript bleibt die Website zugänglich; Hinweis auf die JavaScript-Abhängigkeit der Suche.
+- Introassets werden erst nach den Präferenzprüfungen gerendert. Datensparmodus, 2G und reduzierte Bewegung überspringen das Intro.
+- Formularfehler erhalten Tastaturfokus und markieren betroffene Felder. Gleiche Flughäfen und leere Hotelziele werden vor Anbieteraufrufen abgefangen.
+- Status nennt ausgewählte Produkttypen und die Ergebnisanzahl. Gespeicherte Suchen setzen alte Validierungsfehler zurück.
+- 44px-Bedienflächen, Fokus auf FAQ-Elementen, kontrastreiche Systemfarben und 320px-Regeln. Lange Ergebnislisten dürfen außerhalb des sichtbaren Bereichs verzögert gerendert werden; Angebote bleiben im Dokument.
+- Browserfälle für diese Änderungen vorbereitet; CI-Ergebnis am neuen Commit prüfen.
 
-- Produktionsabhängigkeiten: npm audit --omit=dev meldet nach Updates und eng begrenzten Overrides keine bekannten Schwachstellen (7.10.2026). Das ist keine vollständige Sicherheitsfreigabe.
+## Tatsächliche externe Blocker
 
-## Implementiert, Abnahme noch offen
+Siehe [BETA_LIVE_VALIDATION_2026-10-14.md](BETA_LIVE_VALIDATION_2026-10-14.md).
 
-- T016: GitHub Actions prüft Tests, TypeScript, Lint und Build. Der erste CI-Lauf bestand; der aktuelle Lauf mit Sicherheits- und Browserprüfungen muss beobachtet werden. Erforderliche Branch-Regeln sind nicht eingerichtet.
-- T009/T010/T014: zusätzliche API-Absicherung und Regressionstests vorhanden; aktuelle Lieferantenantworten bleiben zu prüfen.
-- E015: acht Browserfälle (Desktop/Mobil) für Speichern, Wiederherstellung, Suchfehler, Abbruch und Kontakt vorbereitet. Lokaler Chromium-Download ist am Netzwerkarchiv gescheitert; CI führt sie aus.
-- U019: Formularbeschriftungen verbessert; vollständige Barrierefreiheitsprüfung bleibt offen.
+- Booking COM 18 Flug- und Hotel-Ortssuche: HTTP 403, Produkt nicht abonniert.
+- OpenAI: HTTP 429, kein API-Guthaben. Für eine manuelle Such-Beta optional.
+- Vercel: geschützter Inhaltszugriff der verbundenen Identität HTTP 403. Deployment READY beweist keinen Testerzugang.
+- LiteAPI: Konto besteht, aber weder API-Schlüssel in Vercel noch Integration im Projekt.
+- Echte Antwortschemas, Preisbasis, Hotel-Ort, Belegung und Weiterleitungsziele nicht live abgenommen.
 
-## Externe Voraussetzungen
+Die Vercel-Konfiguration wurde am 14. Oktober erneut anhand der Metadaten geprüft: nur RAPIDAPI_KEY und OPENAI_API_KEY, unveränderte Änderungsdaten. Keine erneuten kostenpflichtigen Anbieteraufrufe, Abonnements oder Budgetänderungen.
 
-| Voraussetzung | Benötigter Nachweis | Abhängige Arbeiten |
-|---|---|---|
-| RapidAPI-Zugriff | Gültiger, serverseitig hinterlegter Schlüssel und aktive Abonnements für die genutzten Produkte | Reale Suche und Vertragsfixtures |
-| Daten- und Verkaufsrechte | Schriftlich erlaubte Anzeige, Vergleich und gegebenenfalls Buchung | Öffentliche Nutzung und Checkout |
-| OpenAI-Zugriff | Serverseitiger Schlüssel und Kostenbudget | Live-Prüfung der optionalen KI |
-| Vercel-Berechtigung | Zugriff der verbundenen Identität auf Projekt und Team visnus-projects | Geschützte Vorschau und Buildlogs |
-| Geschäftsmodell | Sitz, Zielmärkte, Vermittler-/Verkäuferrolle | Rechtsprüfung und Zahlungsfreigabe |
-| Lieferant für direkte Orders | Zugang zu Buchung, Storno, Refund und Support | Echte Direktbuchung |
-| Zahlungsfreigabe | Anbieterzulassung für Firma und Reisegeschäft | Geldannahme |
-| Airbnb | Schriftliche Freigabe für den konkret gewünschten Anwendungsfall | Airbnb-Direktintegration |
+## Was noch kostenlos möglich ist
 
-Keine Schlüssel in GitHub, Dokumente oder Chat kopieren. Schlüssel im Hosting als serverseitige Variablen konfigurieren. Fehlende Zugänge werden nicht durch erfundene Angebote ersetzt.
+- Tatsächliche Bedienung mit Testpersonen beobachten; größte Probleme beheben.
+- Reale iOS-/Android-Geräte und Screenreader prüfen; Performance messen. Keine vollständige Barrierefreiheits- oder Leistungsfreigabe behauptet.
+- Geschäfts-/Kontaktangaben, Zielgruppe und Pilotmärkte bestätigen; passende kostenlose Anbieteroptionen prüfen.
+- PR #1 Reiseplanung und gespeicherte Reisen getrennt bewerten. Nur das Landingdesign wurde übernommen; lokale gespeicherte Suchen sind keine gespeicherten Reisen.
+- Preview-/Produktionskonfiguration, Branchregeln und Rollback prüfen, sobald passende Rechte verfügbar sind.
 
-## Reparatur- und Freigabereihenfolge
+## Freigabe
 
-1. Neue Vorschau und CI prüfen; mit realen anonymisierten Anbieterantworten Suchvertrag abnehmen.
-2. Konsolidierte Reparatur integrieren und Features aus PR 1 einzeln übernehmen.
-3. Betatests durchführen und die größten Nutzungsprobleme beheben.
-4. Anbieter, Geschäftsrolle und Zahlungsfreigabe sichern.
-5. Einen Produkttyp inklusive bestätigter Order, Refund und Support vollständig implementieren.
-6. Erst nach durchgängiger Abnahme mehr Produkte und Wachstum freigeben.
-
-Ein grüner Build belegt keine buchbare Reise. Geldannahme ist bis zur durchgängigen Buchungs- und Zahlungsabnahme offen.
-
-Firmen-, Register- und Kontaktangaben stammen aus dem vorhandenen Repository und sind vor öffentlicher Freigabe zu bestätigen. Die Datenschutzerklärung wurde an die tatsächlichen Dienste und lokale Speicherung angepasst; eine fachliche Rechtsprüfung ist noch offen.
-
-Entwicklungstools: Der vollständige Audit meldete zusätzliche Befunde unter anderem in Glob-/Brace-Abhängigkeiten. Sie gehören zur Entwicklungswerkzeugkette; kein erzwungenes Framework-Downgrade oder ungeprüftes Major-Upgrade wurde dafür durchgeführt. Separat weiter prüfen.
-
-Vorbereitet: BETA_FEEDBACK.md, LAUNCH_RUNBOOK.md und BOOKING_DESIGN.md enthalten ausführbare Prüfabläufe sowie den Entwurf für eine später freigegebene Direktbuchung.
+Erst echte Anbieterantworten und zugängliche Vorschau abnehmen, dann 5–10 Tester einladen. Flugvideo zuletzt; keine direkte Zahlung oder Buchung in der Beta. Späterer Checkout benötigt Lieferantenverträge, Zahlungsfreigabe sowie bestätigte Orders, Storno und Refund. Der Masterplan ist ein Endproduktplan und kein Beleg bereits implementierter Funktionen.

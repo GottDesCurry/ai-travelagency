@@ -26,6 +26,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="de">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <noscript><p className="notice">Die Suche benötigt JavaScript. Aktiviere es, um Reiseangebote zu suchen. Hilfe und Kontakt sind auch ohne JavaScript erreichbar.</p></noscript>
         <FlightExperience>
         <a href="#main-content" className="skip-link">Zum Inhalt</a>
         <header className="site-header">
@@ -37,7 +38,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <span className="beta-label">BETA</span>
           </nav>
         </header>
-        <main id="main-content">{children}</main>
+        <main id="main-content" tabIndex={-1}>{children}</main>
         <footer className="site-footer">
           <div><Link href="/" className="wordmark">book repeat.</Link><p>Weniger organisieren. Mehr erleben.</p><p>Flüge und Hotels entdecken. Beim Anbieter buchen.</p></div>
           <nav aria-label="Informationen und Rechtliches">
