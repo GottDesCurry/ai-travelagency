@@ -133,10 +133,13 @@ test('flight intro stays out of server HTML and content works without JavaScript
  try {
   const page=await context.newPage()
   const response=await page.goto('http://127.0.0.1:3174/')
-  expect(await response!.text()).not.toContain('class="flight-experience flight-experience-checking"')
+  const html=await response!.text()
+  expect(html).not.toContain('class="flight-experience flight-experience-checking"')
+  // Check the fallback in source; browser automation can disable script execution
+  // without changing the HTML parser's treatment of noscript elements.
+  expect(html).toContain('<noscript><p class="notice">Die Suche benötigt JavaScript.')
   await expect(page.getByRole('heading',{name:'Deine nächste Reise. Eine neue Perspektive.'})).toBeVisible()
   expect(await page.locator('.site-content').evaluate(element=>element.hasAttribute('inert'))).toBe(false)
-  await expect(page.getByText('Die Suche benötigt JavaScript.',{exact:false})).toBeVisible()
   await page.getByRole('link',{name:'Hilfe & Support'}).click()
   await expect(page.getByRole('heading',{name:'Hilfe zur Beta'})).toBeVisible()
  } finally {await context.close()}
