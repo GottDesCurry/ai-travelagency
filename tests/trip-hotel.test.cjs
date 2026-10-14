@@ -4,6 +4,7 @@ function load(path, dependencies = {}) {
  m._compile(ts.transpileModule(fs.readFileSync(path, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText, path)
  return m.exports
 }
+const failures = load('src/lib/provider-errors.ts')
 const flights = load('src/lib/flight-offers.ts')
 const trip = load('src/lib/trip-search.ts')
 const hotels = load('src/lib/hotel-offers.ts', { './flight-offers': flights })
@@ -26,9 +27,21 @@ test('hotel adapter emits the format used by HotelCard with actual currency and 
 test('hotel handler forwards dates and adults to the provider', async () => {
  const previous = process.env.RAPIDAPI_KEY; process.env.RAPIDAPI_KEY = 'test'
  const calls=[]
- const handler=load('pages/api/hotels.ts',{'../../src/lib/hotel-offers':hotels,'../../src/lib/trip-search':trip,axios:{get:async(url,options)=>{calls.push({url,options});return {data:calls.length===1?[{id:'city-id'}]:{result:[]}}}}}).default
+ const handler=load('pages/api/hotels.ts',{'../../src/lib/hotel-offers':hotels,'../../src/lib/trip-search':trip,'../../src/lib/provider-errors':failures,axios:{get:async(url,options)=>{calls.push({url,options});return {data:calls.length===1?[{id:'city-id'}]:{result:[]}}}}}).default
  let status,payload; const res={setHeader(){},status(s){status=s;return this},json(p){payload=p;return this}}
  try { await handler({method:'GET',query:{city:'Berlin',checkin:'2099-01-01',checkout:'2099-01-05',adults:'4'}},res)
  assert.equal(status,200);assert.deepEqual(payload.results,[]);assert.equal(calls[1].options.params.adults_number,'4');assert.equal(calls[1].options.params.checkin_date,'2099-01-01');assert.equal(calls[1].options.params.checkout_date,'2099-01-05')
  }finally{if(previous===undefined)delete process.env.RAPIDAPI_KEY;else process.env.RAPIDAPI_KEY=previous}
+})
+
+test('hotel access, quota and timeout failures retain distinct HTTP statuses',async()=>{
+ const previous=process.env.RAPIDAPI_KEY;process.env.RAPIDAPI_KEY='test'
+ try {
+  for(const [error,expected] of [[{response:{status:403,data:{secret:'private'}}},503],[{response:{status:429}},429],[{code:'ETIMEDOUT'},504]]) {
+   const handler=load('pages/api/hotels.ts',{'../../src/lib/hotel-offers':hotels,'../../src/lib/trip-search':trip,'../../src/lib/provider-errors':failures,axios:{get:async()=>{throw error}}}).default
+   let status,payload;const res={setHeader(){},status(s){status=s;return this},json(p){payload=p;return this}}
+   await handler({method:'GET',query:{city:'Berlin',checkin:'2099-01-01',checkout:'2099-01-05',adults:'1'}},res)
+   assert.equal(status,expected);assert.ok(!JSON.stringify(payload).includes('private'))
+  }
+ } finally {if(previous===undefined)delete process.env.RAPIDAPI_KEY;else process.env.RAPIDAPI_KEY=previous}
 })

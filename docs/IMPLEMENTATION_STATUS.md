@@ -1,6 +1,8 @@
 # Umsetzung des Masterplans
 
-Stand: 7. Oktober 2026. Verbindliche Aufgabenliste: [MASTERPLAN.md](MASTERPLAN.md).
+Aktueller Live-Stand vom 14. Oktober 2026: [BETA_LIVE_VALIDATION_2026-10-14.md](BETA_LIVE_VALIDATION_2026-10-14.md). Flug-/Hotelzugang ist wegen fehlendem RapidAPI-Produktabonnement gesperrt; OpenAI meldet fehlendes API-Guthaben. Die bisherigen UI-/Build-/Testarbeiten ersetzen diese offenen Zugänge nicht.
+
+Historischer Umsetzungsstand: 7. Oktober 2026. Verbindliche Aufgabenliste: [MASTERPLAN.md](MASTERPLAN.md).
 
 ## Abgeschlossen und lokal geprüft
 

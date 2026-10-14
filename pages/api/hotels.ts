@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import axios from 'axios'
+import { providerFailure } from '../../src/lib/provider-errors'
 import { normalizeHotelOffers } from '../../src/lib/hotel-offers'
 import { validAdults, validateTravelDates } from '../../src/lib/trip-search'
 const API_HOST = 'booking-com18.p.rapidapi.com'
@@ -17,7 +18,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!locationId) return res.status(404).json({ error: 'Kein Hotel-Ort gefunden.' })
     const hotelRes = await axios.get(`https://${API_HOST}/stays/search`, { ...options, params: { location_id: locationId, checkin_date: checkin, checkout_date: checkout, adults_number: adults, room_number: '1', locale: 'de', currency: 'CHF', order_by: 'popularity' } })
     return res.status(200).json({ city: city.trim(), results: normalizeHotelOffers(hotelRes.data) })
-  } catch {
-    return res.status(502).json({ error: 'Der Hotelanbieter hat keine gültige Antwort geliefert. Bitte später erneut versuchen.' })
+  } catch (error) {
+    const failure = providerFailure(error, 'Hotel')
+    console.warn(`[hotel-provider] ${failure.code}`)
+    return res.status(failure.status).json({ error: failure.message })
   }
 }

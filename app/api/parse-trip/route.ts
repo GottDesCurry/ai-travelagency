@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
 import { normalizeParsedTrip } from '@/lib/parsed-trip'
+import { aiInputFailure } from '@/lib/provider-errors'
 
 export async function POST(req: NextRequest) {
   let body
@@ -41,7 +42,9 @@ Behebe einfache Rechtschreibfehler oder Erkennungsprobleme automatisch, z. B. 
     })
 
     return NextResponse.json(normalizeParsedTrip(JSON.parse(chatResponse.choices[0]?.message.content || '{}')))
-  } catch {
-    return NextResponse.json({ error: 'Die KI hat keine gültigen Reiseangaben geliefert. Bitte die Felder direkt ausfüllen.' }, { status: 502 })
+  } catch (error) {
+    const failure = aiInputFailure(error)
+    console.warn(`[trip-ai] ${failure.code}`)
+    return NextResponse.json({ error: failure.message }, { status: failure.status })
   }
 }

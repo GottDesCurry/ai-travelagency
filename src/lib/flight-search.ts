@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { providerFailure } from './provider-errors'
 import { normalizeFlightOffers, type FlightOffer } from './flight-offers'
 import { validateTravelDates, validAdults } from './trip-search'
 
@@ -22,7 +23,9 @@ export async function searchFlights(query: Query): Promise<SearchResult> {
       params: { fromId: origin, toId: destination, departDate: date, returnDate: returnDate || '', adults, cabinClass: 'ECONOMY', currency: 'CHF' }
     })
     return { status: 200, body: normalizeFlightOffers(response.data, Boolean(returnDate)) }
-  } catch {
-    return invalid('Der Fluganbieter hat keine gültige Antwort geliefert. Bitte später erneut versuchen.', 502)
+  } catch (error) {
+    const failure = providerFailure(error, 'Flug')
+    console.warn(`[flight-provider] ${failure.code}`)
+    return invalid(failure.message, failure.status)
   }
 }

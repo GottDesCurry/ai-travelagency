@@ -5,6 +5,7 @@ function load(path, deps = {}) {
  m._compile(ts.transpileModule(fs.readFileSync(path, 'utf8'), {compilerOptions:{module:ts.ModuleKind.CommonJS,esModuleInterop:true}}).outputText,path)
  return m.exports
 }
+const failures = load('src/lib/provider-errors.ts')
 const trip = load('src/lib/trip-search.ts'), offers = load('src/lib/flight-offers.ts')
 const parsed = load('src/lib/parsed-trip.ts', {'./trip-search':trip})
 const query = {origin:'ZRH',destination:'BER',date:'2099-01-01',returnDate:'2099-01-05',adults:'4'}
@@ -12,7 +13,7 @@ const server = {'next/server':{NextResponse:{json:(body,options={})=>Response.js
 async function withKey(key,fn) { const old=process.env.RAPIDAPI_KEY; if(key===undefined)delete process.env.RAPIDAPI_KEY;else process.env.RAPIDAPI_KEY=key;try{return await fn()}finally{if(old===undefined)delete process.env.RAPIDAPI_KEY;else process.env.RAPIDAPI_KEY=old} }
 test('flight requests reject malformed input and configuration before calling provider', async()=>{
  let calls=0
- const search=load('src/lib/flight-search.ts',{'./trip-search':trip,'./flight-offers':offers,axios:{get:async()=>{calls++;throw Error()}}}).searchFlights
+ const search=load('src/lib/flight-search.ts',{'./trip-search':trip,'./flight-offers':offers,'./provider-errors':failures,axios:{get:async()=>{calls++;throw Error()}}}).searchFlights
  await withKey(undefined,async()=>{
   for(const bad of [{...query,origin:''},{...query,origin:'Zurich'},{...query,destination:'ZRH'},{...query,adults:'01'},{...query,adults:['4']},{...query,date:'2099-02-30'}]) assert.equal((await search(bad)).status,400)
   assert.equal((await search(query)).status,503);assert.equal(calls,0)
@@ -20,9 +21,9 @@ test('flight requests reject malformed input and configuration before calling pr
 })
 test('flight provider receives dates and adults; unexpected envelopes produce 502',async()=>{
  let options
- const search=load('src/lib/flight-search.ts',{'./trip-search':trip,'./flight-offers':offers,axios:{get:async(url,o)=>{options=o;return {data:{data:[]}}}}}).searchFlights
+ const search=load('src/lib/flight-search.ts',{'./trip-search':trip,'./flight-offers':offers,'./provider-errors':failures,axios:{get:async(url,o)=>{options=o;return {data:{data:[]}}}}}).searchFlights
  await withKey('test',async()=>{assert.deepEqual(await search(query),{status:200,body:[]});assert.equal(options.params.returnDate,query.returnDate);assert.equal(options.params.adults,'4');assert.equal(options.timeout,15000)})
- const broken=load('src/lib/flight-search.ts',{'./trip-search':trip,'./flight-offers':offers,axios:{get:async()=>({data:{error:'secret provider detail'}})}}).searchFlights
+ const broken=load('src/lib/flight-search.ts',{'./trip-search':trip,'./flight-offers':offers,'./provider-errors':failures,axios:{get:async()=>({data:{error:'secret provider detail'}})}}).searchFlights
  await withKey('test',async()=>{const result=await broken(query);assert.equal(result.status,502);assert.ok(!JSON.stringify(result).includes('secret'))})
 })
 test('legacy flight endpoint rejects malformed JSON and shares the validated search contract',async()=>{
@@ -63,4 +64,23 @@ test('legacy one-way parameter names preserve return date and adults and reject 
  await handler({method:'GET',query:{from:'ZRH',to:'BER',departure:query.date,returnDate:query.returnDate,adults:'4'}},res)
  assert.equal(status,200);assert.deepEqual(forwarded,query)
  await handler({method:'POST',query:{}},res);assert.equal(status,405)
+})
+
+test('flight access, quota and timeout failures are actionable without leaking upstream details',async()=>{
+ for(const [error,expected] of [[{response:{status:403,data:{message:'private subscription detail'}}},503],[{response:{status:429}},429],[{code:'ECONNABORTED'},504]]) {
+  const search=load('src/lib/flight-search.ts',{'./trip-search':trip,'./flight-offers':offers,'./provider-errors':failures,axios:{get:async()=>{throw error}}}).searchFlights
+  await withKey('test',async()=>{const result=await search(query);assert.equal(result.status,expected);assert.ok(!JSON.stringify(result).includes('private'))})
+ }
+})
+
+test('AI input route distinguishes exhausted credit from a temporary rate limit without leaking billing details',async()=>{
+ const previous=process.env.OPENAI_API_KEY;process.env.OPENAI_API_KEY='test'
+ try {
+  for(const [code,expected] of [['credit_balance_exhausted',503],['insufficient_quota',503],['rate_limit_exceeded',429]]) {
+   class Client {constructor(){this.chat={completions:{create:async()=>{throw {status:429,code,message:'private billing detail'}}}}}}
+   const route=load('app/api/parse-trip/route.ts',{...server,'@/lib/parsed-trip':parsed,'@/lib/provider-errors':failures,openai:Client})
+   const response=await route.POST({json:async()=>({prompt:'Berlin'})})
+   assert.equal(response.status,expected);assert.ok(!JSON.stringify(await response.json()).includes('private'))
+  }
+ } finally {if(previous===undefined)delete process.env.OPENAI_API_KEY;else process.env.OPENAI_API_KEY=previous}
 })

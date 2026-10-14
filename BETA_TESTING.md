@@ -1,72 +1,43 @@
-# Beta test setup
+# Beta testing – current setup
 
-This branch combines the build, flight contract, hotel contract, booking-link,
-error-handling and return-itinerary repairs from PRs #2–#7.
+Target: closed beta for 5–10 testers on 17 October 2026. PR #7 / fix/return-flight-display is the consolidated implementation base. No main merge or public release is implied.
 
-## Local validation
+## Implemented and verified
 
-Use the Node version supported by the hosting project. Install with `npm ci`.
-Run `npm test`, `npx tsc --noEmit`, `npm run lint`, and `npm run build`.
-Start the production application with `npm start`.
+- Current landing design and destination choice ported from PR #1 onto the repaired search flow.
+- Every valid offer in the flight provider response is preserved; recommendations are additional, not an offer replacement.
+- Price/stops sorting, roundtrip-aware direct-flight filter, desktop/mobile layout and keyboard submission.
+- Independent flight/hotel errors, cancellation, bounded requests, saved searches, manual fallback on AI input/ranking errors.
+- GitHub Actions at UI commit 2ac532561df05b4f68ec342d2b4788319661668c succeeded: 37 regression tests, TypeScript, lint, build, HTTP smoke and 14 browser cases. Desktop/mobile screenshots visually inspected.
+- Additional provider error classification is covered by new regression tests; consult the CI run at the actual release commit for final validation.
 
-Set RAPIDAPI_KEY and OPENAI_API_KEY in an untracked .env.local file for local
-integration tests, or in the hosting provider Preview environment. Never commit
-credentials. The RapidAPI subscription must authorize booking-com18 endpoints.
-Without credentials, manual flight/hotel search and prompt parsing deliberately
-report configuration errors; existing mocked regression tests do not require keys.
+## Live release blockers: confirmed on 14 October
 
-## Live integration checks still required
+See [docs/BETA_LIVE_VALIDATION_2026-10-14.md](docs/BETA_LIVE_VALIDATION_2026-10-14.md).
 
-- Verify /flights/search, /stays/auto-complete and /stays/search in the subscribed
-  RapidAPI playground. The current query names and payload assumptions are not
-  independently verified against live responses.
-- Test one-way and return travel with 1 and 4 adults. Confirm selected dates and
-  passenger counts reach the provider, and both itineraries display correctly.
-- Confirm the displayed price/currency matches the provider total; determine
-  exactly whether it includes all travelers and fees before beta release.
-- Test hotel-only and combined searches; confirm check-in/out, guests and the
-  price basis. Verify returned location and hotel envelopes match the adapters.
-- Follow actual supplied provider links and check that they lead to the intended
-  offer. HTTPS validation alone does not verify availability or matching details.
-- Exercise AI prompt parsing and ranking, empty results, invalid input, timeout,
-  provider quota/authentication errors, and partial search failure.
-- Check phone and desktop layouts and accessibility before inviting 3–5 testers.
+- Booking COM 18 flight and hotel-location endpoints return 403: not subscribed to this API.
+- OpenAI returns 429 / credit_balance_exhausted: API credits exhausted.
+- Current Vercel preview is READY but the connected identity cannot fetch its protected contents (403).
+- No real offer schema, prices, passenger/room/stay basis or supplier links have passed live validation.
+- Supplier rights, verified business/contact details, tester access and quota/cost controls remain release gates.
+- LiteAPI is not implemented or configured. PR #1 saved trips and day planning remain separate follow-up work.
 
-## GitHub and hosting status
+## Local checks without paid provider calls
 
-PR #1 contains additional features (animated homepage, itinerary generation,
-saved trips, contact/privacy updates). It overlaps with these repairs and should
-be reconciled as a separate feature change; it has not been discarded or merged.
-The accumulated repair branch can be reviewed directly against main rather than
-merging every dependent PR manually.
+    npm ci
+    npm test
+    npx tsc --noEmit
+    npm run lint
+    npm run build
+    npm run smoke
+    npx playwright install chromium
+    npm run e2e
 
-Vercel deployment dpl_CtdPgdes95e41vwjbUbhWosidDEV for commit
-8c3b7d9e6b3781bb1efea3914b5797bd28df2770 was blocked with
-VULNERABLE_NEXTJS_VERSION. Deployment metadata confirms this cause; detailed
-logs remain inaccessible under the connected account's team permissions.
-Next.js and eslint-config-next are now pinned to 15.5.27, with the lockfile
-updated. Verify the replacement deployment before treating this as a working
-hosted preview. A local build is not a successful deployment or live API check.
-The earlier 15.5.27 route-generation failure is resolved by moving App Router
-files from src/app/ to app/ and using alias imports for shared server modules.
+HTTP/browser checks deliberately remove RapidAPI/OpenAI credentials. CI uploads browser screenshots/traces as beta-browser-results. These checks do not establish live availability.
 
-## Masterplan implementation block
+## After the actual API access is restored
 
-Run `npm run smoke` after building. It starts the production server on loopback
-with RapidAPI/OpenAI credentials removed and checks the page plus ten HTTP API
-cases. This is a configuration/error-handling check, not a live supplier test.
-GitHub Actions now runs tests, TypeScript, lint, build and this smoke check.
-See docs/MASTERPLAN.md, docs/IMPLEMENTATION_STATUS.md and
- docs/PROVIDER_INVENTORY.md for task status and access requirements.
-The legacy flights-booking and search-flights paths share the same validated
-search adapter as /api/flights. flights-booking creates no order or payment.
+Use server-side development/Preview variables; never commit secrets or use NEXT_PUBLIC_ keys.
+Verify the subscribed product's endpoints and response envelopes before altering adapters. Test One-way/Roundtrip, one/multiple adults, hotel-only/combined searches, price/currency/fees, location matching and supplied HTTPS provider links. Keep Preview/Production budgets appropriately scoped.
 
-## Browser checks and dependency hygiene
-
-After npm ci and npm run build, run npx playwright install chromium and
-npm run e2e. GitHub Actions installs Chromium with system dependencies and runs
-desktop/mobile checks. No provider credentials or live supplier calls are used.
-The local browser archive download failed, so local browser success is not claimed.
-Production dependency audit is included in CI. Narrow overrides patch Next.js's
-PostCSS and typography's selector parser; inspect their compatibility on upgrades.
-All provider contracts and operational/legal release gates remain open.
+Publish only the exact commit whose CI and live deployment checks passed. Invite testers only after an actual accessible beta link and the release gates are verified. See docs/LAUNCH_RUNBOOK.md and docs/BETA_FEEDBACK.md.
