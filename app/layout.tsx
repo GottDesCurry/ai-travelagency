@@ -1,6 +1,7 @@
 // Cleaned AI Reiseplaner Layout (visually refined, type-safe)
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import FlightExperience from '@/components/FlightExperience'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="de">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <FlightExperience>
         <a href="#main-content" className="skip-link">Zum Inhalt</a>
         <header className="site-header">
           <Link href="/" className="wordmark" aria-label="Book Repeat Startseite"><span className="brand-icon" aria-hidden="true">b.</span>book repeat<span className="brand-dot" aria-hidden="true">.</span></Link>
@@ -48,6 +50,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </nav>
           <p className="footer-note">© {new Date().getFullYear()} Book Repeat – Spechtenstrasse 28, 6036 Dierikon</p>
         </footer>
+        </FlightExperience>
       </body>
     </html>
   )

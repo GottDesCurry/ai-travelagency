@@ -1,4 +1,7 @@
 import { test, expect } from '@playwright/test'
+test.beforeEach(async ({page},testInfo) => {
+ if (!testInfo.title.includes('flight intro')) await page.addInitScript(() => sessionStorage.setItem('bookrepeat-flight-intro-v2','seen'))
+})
 async function fillTrip(page: import('@playwright/test').Page) {
  await page.getByLabel('Hinreise / Check-in').fill('2099-01-01')
  await page.getByLabel('Rückreise / Check-out').fill('2099-01-05')
@@ -78,6 +81,42 @@ test('destination choice, keyboard search, sorting and round-trip direct filter 
 test('reduced-motion preference disables the decorative plane animation',async({page})=>{
  await page.emulateMedia({reducedMotion:'reduce'})
  await page.goto('/')
- await expect(page.getByRole('heading',{name:'Weniger planen. Mehr erleben.'})).toBeVisible()
+ await expect(page.getByRole('heading',{name:'Deine nächste Reise. Eine neue Perspektive.'})).toBeVisible()
  expect(await page.locator('.hero-plane').evaluate(element=>getComputedStyle(element).animationName)).toBe('none')
+})
+
+test('flight intro plays through clouds, reveals the website and only runs once per tab',async({page},testInfo)=>{
+ await page.goto('/')
+ await expect(page.getByRole('dialog',{name:'Flugintro'})).toBeVisible()
+ await expect(page.locator('.flight-experience-playing')).toBeVisible()
+ await expect.poll(()=>page.locator('.intro-aircraft').evaluate(element=>Number(getComputedStyle(element).opacity))).toBeGreaterThan(.8)
+ await page.screenshot({path:testInfo.outputPath('flight-intro.png')})
+ await expect(page.getByRole('dialog',{name:'Flugintro'})).toHaveCount(0,{timeout:8000})
+ await expect(page.getByRole('heading',{name:'Deine nächste Reise. Eine neue Perspektive.'})).toBeVisible()
+ expect(await page.locator('.site-content').evaluate(element=>element.hasAttribute('inert'))).toBe(false)
+ expect(await page.evaluate(()=>document.body.style.overflow)).not.toBe('hidden')
+ await page.screenshot({path:testInfo.outputPath('blue-homepage.png'),fullPage:true})
+ await page.reload();await expect(page.getByRole('dialog',{name:'Flugintro'})).toHaveCount(0)
+})
+test('flight intro supports skip and Escape and restores keyboard focus',async({page})=>{
+ await page.goto('/')
+ await page.getByRole('button',{name:'Intro überspringen'}).click()
+ await expect(page.getByRole('dialog',{name:'Flugintro'})).toHaveCount(0)
+ await expect(page.locator('#start-planning')).toBeFocused()
+ await page.evaluate(()=>sessionStorage.removeItem('bookrepeat-flight-intro-v2'))
+ await page.reload();await expect(page.getByRole('dialog',{name:'Flugintro'})).toBeVisible()
+ await page.keyboard.press('Escape')
+ await expect(page.getByRole('dialog',{name:'Flugintro'})).toHaveCount(0)
+ await expect(page.locator('#start-planning')).toBeFocused()
+})
+test('flight intro is bypassed for reduced motion and unavailable assets',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'})
+ await page.goto('/');await expect(page.getByRole('dialog',{name:'Flugintro'})).toHaveCount(0)
+ expect(await page.locator('.site-content').evaluate(element=>element.hasAttribute('inert'))).toBe(false)
+ await page.emulateMedia({reducedMotion:'no-preference'})
+ await page.route('**/visuals/**',route=>route.abort())
+ await page.route('**/_next/image?*',route=>route.abort())
+ await page.evaluate(()=>sessionStorage.removeItem('bookrepeat-flight-intro-v2'))
+ await page.reload();await expect(page.getByRole('dialog',{name:'Flugintro'})).toHaveCount(0,{timeout:6000})
+ expect(await page.locator('.site-content').evaluate(element=>element.hasAttribute('inert'))).toBe(false)
 })

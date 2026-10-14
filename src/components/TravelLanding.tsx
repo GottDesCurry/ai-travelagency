@@ -1,17 +1,20 @@
+import Image from 'next/image'
+
 export default function TravelLanding() {
   return <section className="hero" aria-labelledby="landing-title">
-    <div>
-      <p className="eyebrow">DEINE IDEE. DEINE REISE.</p>
-      <h1 id="landing-title">Weniger planen.<br/><em>Mehr erleben.</em></h1>
-      <p className="hero-copy">Ein Wochenende am Meer. Eine neue Lieblingsstadt. Oder einfach mal raus. Entdecke passende Flüge und Hotels für deine nächste Reise.</p>
-      <a href="#reise-suche" className="hero-cta">Meine Reise beginnt hier <span aria-hidden="true">↗</span></a>
-      <p className="hero-note">FLÜGE · HOTELS · DEIN NÄCHSTES REISEZIEL</p>
+    <div className="hero-copy-block">
+      <p className="eyebrow">DEIN NÄCHSTES KAPITEL</p>
+      <h1 id="landing-title">Deine nächste Reise.<br/><em>Eine neue Perspektive.</em></h1>
+      <p className="hero-copy">Über den Wolken beginnt etwas Neues. Entdecke Flüge und Hotels, vergleiche deine Möglichkeiten und finde die Reise, die zu dir passt.</p>
+      <a id="start-planning" href="#reise-suche" className="hero-cta">Reise entdecken <span aria-hidden="true">↗</span></a>
+      <div className="hero-meta"><span>01 / FLÜGE</span><span>02 / HOTELS</span><span>03 / DEINE AUSZEIT</span></div>
     </div>
     <div className="sky-card" aria-hidden="true">
-      <div className="sky-sun"/><div className="sky-cloud cloud-a"/><div className="sky-cloud cloud-b"/>
-      <div className="hero-plane"><svg viewBox="0 0 220 100" fill="none"><path d="M20 57 92 46 134 8 153 9 132 43 186 45C216 46 219 56 187 60L129 65 151 89 132 92 96 68 40 73 21 87 9 85 20 64 5 61Z" fill="currentColor"/><path d="m132 43 52 2" stroke="#7793a4" strokeWidth="3"/></svg></div>
-      <div className="sky-ticket"><small>DEIN NÄCHSTES KAPITEL</small>Zürich · Irgendwo neu</div>
-      <div className="sky-caption"><span>ZEIT FÜR EINE AUSZEIT.</span><span>01 / ∞</span></div>
+      <div className="hero-cloudscape"><Image src="/visuals/cloudscape-blue.webp" alt="" fill priority sizes="(max-width: 800px) 100vw, 55vw"/></div>
+      <div className="hero-orbit orbit-a"/><div className="hero-orbit orbit-b"/>
+      <div className="hero-plane"><Image src="/visuals/aircraft-blue.webp" alt="" width={1774} height={887} priority sizes="(max-width: 800px) 95vw, 50vw"/></div>
+      <div className="sky-ticket"><small>YOUR NEXT DESTINATION</small><strong>ZRH <span>──────── ✈</span> ANYWHERE</strong><span className="ticket-note">Neue Orte. Neue Geschichten.</span></div>
+      <div className="sky-caption"><span>ABOVE THE ORDINARY.</span><span>FLIGHT / 001</span></div>
     </div>
   </section>
 }
