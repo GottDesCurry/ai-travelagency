@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 test.beforeEach(async ({page},testInfo) => {
- if (!testInfo.title.includes('flight intro')) await page.addInitScript(() => sessionStorage.setItem('bookrepeat-flight-intro-v2','seen'))
+ if (!testInfo.title.includes('flight intro')) await page.addInitScript(() => sessionStorage.setItem('bookrepeat-flight-intro-v3','seen'))
 })
 async function fillTrip(page: import('@playwright/test').Page) {
  await page.getByLabel('Hinreise / Check-in').fill('2099-01-01')
@@ -89,9 +89,10 @@ test('flight intro plays through clouds, reveals the website and only runs once 
  await page.goto('/')
  await expect(page.getByRole('dialog',{name:'Flugintro'})).toBeVisible()
  await expect(page.locator('.flight-experience-playing')).toBeVisible()
- await expect.poll(()=>page.locator('.intro-aircraft').evaluate(element=>Number(getComputedStyle(element).opacity))).toBeGreaterThan(.8)
+ await expect.poll(()=>page.locator('.intro-video').evaluate(element=>(element as HTMLVideoElement).currentTime)).toBeGreaterThan(1.2)
+ expect(await page.locator('.intro-video').evaluate(element=>(element as HTMLVideoElement).videoWidth)).toBeGreaterThan(0)
  await page.screenshot({path:testInfo.outputPath('flight-intro.png')})
- await expect(page.getByRole('dialog',{name:'Flugintro'})).toHaveCount(0,{timeout:8000})
+ await expect(page.getByRole('dialog',{name:'Flugintro'})).toHaveCount(0,{timeout:10000})
  await expect(page.getByRole('heading',{name:'Deine nächste Reise. Eine neue Perspektive.'})).toBeVisible()
  expect(await page.locator('.site-content').evaluate(element=>element.hasAttribute('inert'))).toBe(false)
  expect(await page.evaluate(()=>document.body.style.overflow)).not.toBe('hidden')
@@ -103,7 +104,7 @@ test('flight intro supports skip and Escape and restores keyboard focus',async({
  await page.getByRole('button',{name:'Intro überspringen'}).click()
  await expect(page.getByRole('dialog',{name:'Flugintro'})).toHaveCount(0)
  await expect(page.locator('#start-planning')).toBeFocused()
- await page.evaluate(()=>sessionStorage.removeItem('bookrepeat-flight-intro-v2'))
+ await page.evaluate(()=>sessionStorage.removeItem('bookrepeat-flight-intro-v3'))
  await page.reload();await expect(page.getByRole('dialog',{name:'Flugintro'})).toBeVisible()
  await page.keyboard.press('Escape')
  await expect(page.getByRole('dialog',{name:'Flugintro'})).toHaveCount(0)
@@ -116,7 +117,13 @@ test('flight intro is bypassed for reduced motion and unavailable assets',async(
  await page.emulateMedia({reducedMotion:'no-preference'})
  await page.route('**/visuals/**',route=>route.abort())
  await page.route('**/_next/image?*',route=>route.abort())
- await page.evaluate(()=>sessionStorage.removeItem('bookrepeat-flight-intro-v2'))
+ await page.evaluate(()=>sessionStorage.removeItem('bookrepeat-flight-intro-v3'))
  await page.reload();await expect(page.getByRole('dialog',{name:'Flugintro'})).toHaveCount(0,{timeout:6000})
+ expect(await page.locator('.site-content').evaluate(element=>element.hasAttribute('inert'))).toBe(false)
+})
+
+test('flight intro opens the site when video autoplay is blocked',async({page})=>{
+ await page.addInitScript(()=>{HTMLMediaElement.prototype.play=function(){return Promise.reject(new Error('Autoplay blocked'))}})
+ await page.goto('/');await expect(page.getByRole('dialog',{name:'Flugintro'})).toHaveCount(0,{timeout:6000})
  expect(await page.locator('.site-content').evaluate(element=>element.hasAttribute('inert'))).toBe(false)
 })
