@@ -234,9 +234,8 @@ export default function Home() {
   }
 
   return <>
-    <TravelLanding />
-    <section id="reise-suche" className="section-wrap" aria-labelledby="search-title">
-      <div className="section-heading"><div><p className="eyebrow">VON DER IDEE ZUR REISE</p><h2 id="search-title">Wohin zieht es dich?</h2></div><p>Dein Ziel. Deine Daten. Deine Auswahl.</p></div>
+    <section id="reise-suche" className="section-wrap search-first" aria-labelledby="search-title">
+      <div className="section-heading"><div><p className="eyebrow">VON DER IDEE ZUR REISE</p><h1 id="search-title" tabIndex={-1}>Wohin zieht es dich?</h1></div><p>Dein Ziel. Deine Daten. Deine Auswahl.</p></div>
       <div className="planner-card planner-grid">
         <div>
           <form onSubmit={event => { event.preventDefault(); void handleSearch() }} className="planner-form">
@@ -310,6 +309,7 @@ export default function Home() {
       <div className="offer-grid">{hotelResults.map(hotel => <HotelCard key={hotel.id} hotel={hotel} favorite={{ saved: favorites.has(favoriteKey('hotel', hotel.id || hotel.name)), disabled: !favorites.ready, onToggle: () => favorites.toggle(favoriteFromHotel(hotel)) }}/>)}</div>
     </section>}
     <FavoritesPanel items={favorites.items} message={favorites.message} onRemove={favorites.remove} onClear={favorites.clear}/>
+    <TravelLanding />
     <DestinationIdeas onChoose={chooseDestination} disabled={loading}/>
   </>
 }

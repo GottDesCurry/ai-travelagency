@@ -4,9 +4,9 @@ export default function TravelLanding() {
   return <section className="hero" aria-labelledby="landing-title">
     <div className="hero-copy-block">
       <p className="eyebrow">DEIN NÄCHSTES KAPITEL</p>
-      <h1 id="landing-title">Deine nächste Reise.<br/><em>Eine neue Perspektive.</em></h1>
+      <h2 id="landing-title" className="hero-title">Deine nächste Reise.<br/><em>Eine neue Perspektive.</em></h2>
       <p className="hero-copy">Über den Wolken beginnt etwas Neues. Entdecke Flüge und Hotels, vergleiche deine Möglichkeiten und finde die Reise, die zu dir passt.</p>
-      <a id="start-planning" href="#reise-suche" className="hero-cta">Reise entdecken <span aria-hidden="true">↗</span></a>
+      <a href="#entdecken" className="hero-cta">Ideen entdecken <span aria-hidden="true">↗</span></a>
       <div className="hero-meta"><span>01 / FLÜGE</span><span>02 / HOTELS</span><span>03 / DEINE AUSZEIT</span></div>
     </div>
     <div className="sky-card" aria-hidden="true">

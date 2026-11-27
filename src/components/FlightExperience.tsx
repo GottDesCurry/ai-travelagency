@@ -32,7 +32,7 @@ export default function FlightExperience({ children }: { children: React.ReactNo
 
   const finish = useCallback(() => {
     setPhase('done')
-    requestAnimationFrame(() => document.getElementById('start-planning')?.focus({ preventScroll: true }))
+    requestAnimationFrame(() => document.getElementById('search-title')?.focus({ preventScroll: true }))
   }, [])
 
   useEffect(() => {
