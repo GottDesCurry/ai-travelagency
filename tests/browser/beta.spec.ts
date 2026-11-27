@@ -89,8 +89,11 @@ test('flight intro plays through clouds, reveals the website and only runs once 
  await page.goto('/')
  await expect(page.getByRole('dialog',{name:'Flugintro'})).toBeVisible()
  await expect(page.locator('.flight-experience-playing')).toBeVisible()
- const nearWidth=await page.locator('.intro-aircraft').evaluate(element=>element.getBoundingClientRect().width)
- await expect.poll(()=>page.locator('.intro-aircraft').evaluate(element=>element.getBoundingClientRect().width)).toBeLessThan(nearWidth*.65)
+ // The jet visibly flies: it starts small on the left and travels right while growing towards the camera.
+ const box=()=>page.locator('.intro-aircraft').evaluate(element=>{const r=element.getBoundingClientRect();return {x:r.left+r.width/2,width:r.width}})
+ const start=await box()
+ await expect.poll(async()=>(await box()).x-start.x,{timeout:6000}).toBeGreaterThan(page.viewportSize()!.width*.3)
+ expect((await box()).width).toBeGreaterThan(start.width*1.5)
  await expect(page.locator('.intro-aircraft img')).toHaveAttribute('src',/aircraft-blue/)
  await page.screenshot({path:testInfo.outputPath('flight-intro.png')})
  await expect(page.getByRole('dialog',{name:'Flugintro'})).toHaveCount(0,{timeout:10000})

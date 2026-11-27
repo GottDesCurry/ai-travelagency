@@ -6,6 +6,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 const SESSION_KEY = 'bookrepeat-flight-intro-v4'
 type Phase = 'checking' | 'loading' | 'playing' | 'exiting' | 'done'
+const PLAY_MS = 5600
+const EXIT_MS = 650
 
 export default function FlightExperience({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -45,7 +47,7 @@ export default function FlightExperience({ children }: { children: React.ReactNo
 
   useEffect(() => {
     if (phase !== 'playing' && phase !== 'exiting') return
-    const timeout = setTimeout(() => { if (phase === 'playing') setPhase('exiting'); else finish() }, phase === 'playing' ? 4200 : 650)
+    const timeout = setTimeout(() => { if (phase === 'playing') setPhase('exiting'); else finish() }, phase === 'playing' ? PLAY_MS : EXIT_MS)
     return () => clearTimeout(timeout)
   }, [phase, finish])
 
@@ -70,7 +72,17 @@ export default function FlightExperience({ children }: { children: React.ReactNo
     <div className="site-content" inert={active} aria-hidden={active ? true : undefined}>{children}</div>
     {active && <div role="dialog" aria-modal="true" aria-label="Flugintro" aria-describedby="flight-intro-description" className={`flight-experience flight-experience-${phase}`}>
       <div className="intro-sky" aria-hidden="true"><Image src="/visuals/cloudscape-blue.webp" alt="" fill priority sizes="100vw" onLoad={() => setSkyReady(true)} onError={finish}/></div>
-      <div className="intro-aircraft" aria-hidden="true"><Image src="/visuals/aircraft-blue.webp" alt="" width={1774} height={887} priority sizes="(max-width: 600px) 125vw, 85vw" onLoad={() => setPlaneReady(true)} onError={finish}/></div>
+      <div className="intro-stream" aria-hidden="true"/>
+      <div className="intro-puffs intro-puffs-back" aria-hidden="true"><span/><span/><span/></div>
+      {/* Flight path (position, distance) and aircraft attitude (bank, turbulence) are separate layers. */}
+      <div className="intro-flightpath" aria-hidden="true">
+        <div className="intro-aircraft">
+          <span className="intro-contrail intro-contrail-engine"/>
+          <span className="intro-contrail intro-contrail-wing"/>
+          <Image src="/visuals/aircraft-blue.webp" alt="" width={1774} height={887} priority sizes="(max-width: 600px) 90vw, 60vw" onLoad={() => setPlaneReady(true)} onError={finish}/>
+        </div>
+      </div>
+      <div className="intro-puffs intro-puffs-front" aria-hidden="true"><span/><span/></div>
       <div className="intro-foreground" aria-hidden="true"/>
       <div className="intro-vignette" aria-hidden="true"/>
       <div className="intro-heading"><span className="intro-kicker">BOOK REPEAT · FLIGHT EXPERIENCE</span><p id="flight-intro-description">Deine nächste Reise beginnt.</p><span className="intro-line" aria-hidden="true"/></div>
