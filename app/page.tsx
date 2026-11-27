@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-import iataCodes from '@/data/iata-codes.json'
+import { airportCode, hotelCityName, resolveCity, unresolvedCityMessage } from '@/lib/city-lookup'
 import FlightCard from '@/components/FlightCard'
 import HotelCard from '@/components/HotelCard'
 import SavedSearches from '@/components/SavedSearches'
@@ -14,31 +14,6 @@ import { record, type FlightOffer } from '@/lib/flight-offers'
 import { normalizeParsedTrip } from '@/lib/parsed-trip'
 
 import { requestJson, loadFlights, loadHotels, settleSearch } from '@/lib/search-client'
-
-const translateCityName = (name: string): string => {
-  const nameNormalized = name.trim().toLowerCase()
-  const translations: Record<string, string> = {
-    'zürich': 'Zurich', 'zurich': 'Zurich', 'lissabon': 'Lisbon', 'lisbon': 'Lisbon',
-    'berlin': 'Berlin', 'genf': 'Geneva', 'geneva': 'Geneva', 'mailand': 'Milan',
-    'milan': 'Milan', 'köln': 'Cologne', 'cologne': 'Cologne', 'münchen': 'Munich',
-    'munich': 'Munich', 'venedig': 'Venice', 'venice': 'Venice', 'prag': 'Prague', 'prague': 'Prague'
-  }
-  return translations[nameNormalized] || name
-}
-
-type IataEntry = { city: string; code: string }
-const airports: IataEntry[] = iataCodes
-
-const normalizeCity = (input: string): string => {
-  const inputNormalized = input.toLowerCase().trim()
-  const found = airports.find((item) => (
-    item.city.toLowerCase() === inputNormalized ||
-    item.city.toLowerCase().includes(inputNormalized) ||
-    input.toUpperCase() === item.code ||
-    inputNormalized.includes(item.city.toLowerCase())
-  ))
-  return found?.city || input
-}
 
 const correctCitySpellingWithGPT = async (input: string, signal?: AbortSignal): Promise<string> => {
   try {
@@ -55,6 +30,24 @@ const correctCitySpellingWithGPT = async (input: string, signal?: AbortSignal): 
     return input
   }
 }
+
+type ResolvedCity = { ok: true; code: string | null; name: string; corrected?: string } | { ok: false; message: string }
+
+// Known cities and IATA codes are resolved locally; only unknown input goes to the OpenAI city correction.
+const resolveCityInput = async (label: string, input: string, needsAirport: boolean, signal?: AbortSignal): Promise<ResolvedCity> => {
+  const local = resolveCity(input)
+  const code = airportCode(local)
+  if (code) return { ok: true, code, name: local.kind === 'found' ? local.city : input.trim() }
+  if (local.kind === 'ambiguous') return { ok: false, message: unresolvedCityMessage(label, input.trim(), local) }
+  const corrected = await correctCitySpellingWithGPT(input.trim(), signal)
+  const retry = resolveCity(corrected)
+  const correctedCode = airportCode(retry)
+  if (correctedCode) return { ok: true, code: correctedCode, name: retry.kind === 'found' ? retry.city : corrected, corrected: retry.kind === 'found' ? retry.city : corrected }
+  // Hotels do not need an airport: the provider location search gets the (corrected) name.
+  if (!needsAirport) return { ok: true, code: null, name: corrected, ...(cityKeyChanged(input, corrected) ? { corrected } : {}) }
+  return { ok: false, message: unresolvedCityMessage(label, input.trim(), local) }
+}
+const cityKeyChanged = (a: string, b: string) => a.trim().toLowerCase() !== b.trim().toLowerCase()
 
 export default function Home() {
   const [origin, setOrigin] = useState('ZRH')
@@ -87,13 +80,6 @@ export default function Home() {
     if (error && !loading) errorSummary.current?.focus()
   }, [error, loading])
 
-  const getIataCode = (cityName: string): string | null => {
-    const match = airports.find(
-      (item) => item.city.toLowerCase() === cityName.toLowerCase()
-    )
-    return match ? match.code : null
-  }
-
   const handleSearch = async () => {
     if (searchInProgress.current) return
     searchInProgress.current = true
@@ -116,6 +102,7 @@ export default function Home() {
     let newDate = date
     let newReturnDate = returnDate
     let newPeople = people
+    const notes: string[] = []
 
     try {
       if (prompt.trim() !== '') {
@@ -127,23 +114,12 @@ export default function Home() {
           headers: { 'Content-Type': 'application/json' }
         }))
 
-        if (typeof parsed?.origin === 'string' && parsed.origin) {
-          const corrected = await correctCitySpellingWithGPT(parsed.origin, controller.signal)
-          const city = normalizeCity(corrected)
-          if (getIataCode(city)) {
-            newOrigin = city
-            setOrigin(city)
-          }
-        }
-
-        if (typeof parsed?.destination === 'string' && parsed.destination) {
-          const corrected = await correctCitySpellingWithGPT(parsed.destination, controller.signal)
-          const city = normalizeCity(corrected)
-          if (getIataCode(city)) {
-            newDestination = city
-            setDestination(city)
-          }
-        }
+        if (parsed.origin) { newOrigin = parsed.origin; setOrigin(parsed.origin) }
+        else if (searchFlights) notes.push(`Kein Abflugort im Reisewunsch erkannt, verwendet wird «${newOrigin}» aus dem Formular.`)
+        if (parsed.destination) { newDestination = parsed.destination; setDestination(parsed.destination) }
+        else notes.push(`Kein Reiseziel im Reisewunsch erkannt, verwendet wird «${newDestination}» aus dem Formular.`)
+        if (!parsed.date) notes.push(newDate ? `Kein Reisedatum im Reisewunsch erkannt, verwendet wird ${newDate} aus dem Formular.` : 'Kein Reisedatum im Reisewunsch erkannt. Bitte das Datum im Formular wählen.')
+        if (!parsed.people) notes.push(`Keine Personenzahl im Reisewunsch erkannt, verwendet wird die Angabe aus dem Formular (Erwachsene: ${newPeople}).`)
 
         if (typeof parsed?.date === 'string' && parsed.date) {
           newDate = parsed.date
@@ -160,10 +136,11 @@ export default function Home() {
         }
         } catch (err) {
           if (controller.signal.aborted) throw err
-          setPromptWarning('Der Reisewunsch konnte nicht ausgewertet werden. Wir verwenden die Angaben in den Formularfeldern. Bitte prüfe sie vor der Buchung.')
+          notes.push('Der Reisewunsch konnte nicht ausgewertet werden. Wir verwenden die Angaben in den Formularfeldern. Bitte prüfe sie vor der Buchung.')
         }
       }
 
+      setPromptWarning(notes.join(' '))
       const dateError = validateTravelDates(newDate, newReturnDate, searchHotels)
       if (dateError || !Number.isInteger(newPeople) || newPeople < 1 || newPeople > 9 || (!searchFlights && !searchHotels)) {
         setInvalidFields(dateError ? ['departure-date', 'return-date'] : !Number.isInteger(newPeople) || newPeople < 1 || newPeople > 9 ? ['adults'] : ['search-flights', 'search-hotels'])
@@ -171,17 +148,35 @@ export default function Home() {
         return
       }
 
-      const originCode = getIataCode(newOrigin) || (newOrigin.length === 3 ? newOrigin.toUpperCase() : null)
-      const destinationCode = getIataCode(newDestination) || (newDestination.length === 3 ? newDestination.toUpperCase() : null)
-
-      if (searchFlights && (!originCode || !destinationCode || !/^[A-Z]{3}$/.test(originCode) || !/^[A-Z]{3}$/.test(destinationCode) || originCode === destinationCode)) {
-        setInvalidFields(['origin', 'destination'])
-        setError('Bitte zwei unterschiedliche Städte oder gültige Flughafencodes eingeben.')
+      if (!newDestination) {
+        setInvalidFields(['destination'])
+        setError('Bitte ein Reiseziel eingeben.')
         return
       }
-      if (searchHotels && !newDestination.trim()) {
-        setInvalidFields(['destination'])
-        setError('Bitte ein Reiseziel für die Hotelsuche eingeben.')
+      if (searchFlights && !newOrigin) {
+        setInvalidFields(['origin'])
+        setError('Bitte einen Abflugort eingeben.')
+        return
+      }
+      const originResult = searchFlights ? await resolveCityInput('Abflugort', newOrigin, true, controller.signal) : null
+      const destinationResult = await resolveCityInput('Reiseziel', newDestination, searchFlights, controller.signal)
+      for (const [result, field, setField, label] of [[originResult, 'origin', setOrigin, 'Abflugort'], [destinationResult, 'destination', setDestination, 'Reiseziel']] as const) {
+        if (!result) continue
+        if (!result.ok) {
+          setPromptWarning(notes.join(' '))
+          setInvalidFields([field])
+          setError(result.message)
+          return
+        }
+        if (result.corrected) { setField(result.corrected); notes.push(`${label} erkannt als «${result.corrected}»${result.code ? ` (${result.code})` : ''}.`) }
+      }
+      const originCode = originResult?.ok ? originResult.code : null
+      const destinationCode = destinationResult.ok ? destinationResult.code : null
+      setPromptWarning(notes.join(' '))
+
+      if (searchFlights && (!originCode || !destinationCode || originCode === destinationCode)) {
+        setInvalidFields(['origin', 'destination'])
+        setError('Bitte zwei unterschiedliche Städte oder gültige Flughafencodes eingeben.')
         return
       }
 
@@ -194,9 +189,9 @@ export default function Home() {
         ))
       }
       if (searchHotels) {
-        const cityName = airports.find(item => item.code === newDestination.toUpperCase())?.city || newDestination
+        const cityName = destinationResult.ok ? hotelCityName(destinationResult.name) : newDestination
         tasks.push(settleSearch(
-          () => loadHotels(hotelQuery(translateCityName(cityName), newDate, newReturnDate, newPeople), controller.signal),
+          () => loadHotels(hotelQuery(cityName, newDate, newReturnDate, newPeople), controller.signal),
           offers => { setHotelResults(offers); setHotelDone(true) },
           message => { setHotelError(message); setHotelDone(true) }
         ))

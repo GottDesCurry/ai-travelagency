@@ -5,6 +5,10 @@ import { allowRequest, pagesClient, RATE_LIMIT_MESSAGE } from '../../src/lib/rat
 // Typisierung für die Anfrage und Antwort
 type CorrectCityResponse = { corrected?: string; error?: string }
 
+// In-memory cache of earlier corrections (per serverless instance) to avoid repeated AI calls.
+const correctionCache = new Map<string, string>()
+const MAX_CACHE_ENTRIES = 1000
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<CorrectCityResponse>
@@ -21,6 +25,10 @@ export default async function handler(
   }
 
   if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'Die KI-Ortskorrektur ist noch nicht konfiguriert.' })
+
+  const cacheKey = input.trim().toLowerCase()
+  const cached = correctionCache.get(cacheKey)
+  if (cached) return res.status(200).json({ corrected: cached })
 
   if (!allowRequest('ai', pagesClient(req))) return res.status(429).json({ error: RATE_LIMIT_MESSAGE })
 
@@ -41,6 +49,8 @@ export default async function handler(
 
     const corrected = completion.choices?.[0]?.message?.content?.trim()
     if (!corrected || corrected.length > 120) throw new Error('Invalid city response')
+    if (correctionCache.size >= MAX_CACHE_ENTRIES) correctionCache.clear()
+    correctionCache.set(cacheKey, corrected)
     return res.status(200).json({ corrected })
   } catch {
     return res.status(502).json({ error: 'Interner Fehler bei der GPT-Verarbeitung.' })

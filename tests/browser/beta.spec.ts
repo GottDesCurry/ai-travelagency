@@ -184,3 +184,28 @@ test('320px layout, feedback and touch targets remain usable',async({page},testI
  await expect(page.locator('.feedback-template')).toContainText('Was habe ich erwartet?')
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy()
 })
+test('misspelled cities are corrected by the AI once, known cities need no AI call',async({page})=>{
+ const corrections:string[]=[];let flightQuery=''
+ await page.route('**/api/ai-correct-city',async route=>{const input=JSON.parse(route.request().postData()||'{}').input;corrections.push(input);await route.fulfill({json:{corrected:input==='Malagga'?'Malaga':input}})})
+ await page.route('**/api/flights-aggregated?*',route=>{flightQuery=new URL(route.request().url()).search;return route.fulfill({json:[]})})
+ await page.goto('/');await fillTrip(page)
+ await page.getByLabel('Abflugort',{exact:true}).fill('Zürich')
+ await page.getByLabel('Reiseziel',{exact:true}).fill('Malagga')
+ await page.getByLabel('Hotels suchen').uncheck()
+ await page.getByRole('button',{name:'Suche starten'}).click()
+ await expect(page.getByText('Reiseziel erkannt als «Malaga» (AGP).')).toBeVisible()
+ await expect(page.getByLabel('Reiseziel',{exact:true})).toHaveValue('Malaga')
+ expect(corrections).toEqual(['Malagga'])
+ expect(flightQuery).toContain('origin=ZRH');expect(flightQuery).toContain('destination=AGP')
+})
+test('an unknown city shows a clear message instead of picking an airport',async({page})=>{
+ let providerCalls=0
+ await page.route('**/api/ai-correct-city',route=>route.fulfill({json:{corrected:'Atlantis'}}))
+ await page.route('**/api/flights-aggregated?*',route=>{providerCalls++;return route.fulfill({json:[]})})
+ await page.goto('/');await fillTrip(page)
+ await page.getByLabel('Reiseziel',{exact:true}).fill('Atlantis')
+ await page.getByRole('button',{name:'Suche starten'}).click()
+ await expect(page.locator('#search-error')).toContainText('Reiseziel «Atlantis» wurde nicht erkannt')
+ await expect(page.getByLabel('Reiseziel',{exact:true})).toHaveAttribute('aria-invalid','true')
+ expect(providerCalls).toBe(0)
+})

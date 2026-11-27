@@ -31,6 +31,9 @@ Gib nur folgendes JSON zurück:
   "people": 1
 }
 Wenn du etwas nicht findest, gib einen leeren String oder null zurück.
+Zähle bei "people" die schreibende Person mit, z. B. "ich und drei Freunde" = 4. Ohne Personenangabe: null.
+Fehlt bei einem Datum die Jahreszahl, nimm das nächste Datum ab heute. Ungültige Kalenderdaten (z. B. 30. Februar) nicht korrigieren, sondern null zurückgeben.
+Ist eine Angabe mehrdeutig, gib null zurück statt zu raten.
 Behebe einfache Rechtschreibfehler oder Erkennungsprobleme automatisch, z. B. bei Städtenamen.`
 
   try {
