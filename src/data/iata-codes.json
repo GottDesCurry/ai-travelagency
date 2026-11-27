@@ -3,13 +3,22 @@
     "city": "Zürich",
     "code": "ZRH",
     "country": "Switzerland",
-    "airport": "Zürich Flughafen"
+    "airport": "Zürich Flughafen",
+    "aliases": [
+      "Zurich",
+      "Zuerich",
+      "Zurigo"
+    ]
   },
   {
     "city": "Lissabon",
     "code": "LIS",
     "country": "Portugal",
-    "airport": "Lisbon Portela Airport"
+    "airport": "Lisbon Portela Airport",
+    "aliases": [
+      "Lisbon",
+      "Lisboa"
+    ]
   },
   {
     "city": "Paris",
@@ -33,7 +42,10 @@
     "city": "New York",
     "code": "NYC",
     "country": "USA",
-    "airport": "All airports"
+    "airport": "All airports",
+    "aliases": [
+      "New York City"
+    ]
   },
   {
     "city": "London",
@@ -63,7 +75,10 @@
     "city": "Tokyo",
     "code": "TYO",
     "country": "Japan",
-    "airport": "All airports"
+    "airport": "All airports",
+    "aliases": [
+      "Tokio"
+    ]
   },
   {
     "city": "Osaka",
@@ -81,7 +96,10 @@
     "city": "Singapore",
     "code": "SIN",
     "country": "Singapore",
-    "airport": "Changi"
+    "airport": "Changi",
+    "aliases": [
+      "Singapur"
+    ]
   },
   {
     "city": "Dubai",
@@ -105,7 +123,11 @@
     "city": "Delhi",
     "code": "DEL",
     "country": "India",
-    "airport": "Indira Gandhi Intl"
+    "airport": "Indira Gandhi Intl",
+    "aliases": [
+      "New Delhi",
+      "Neu-Delhi"
+    ]
   },
   {
     "city": "Mumbai",
@@ -141,19 +163,30 @@
     "city": "Rome",
     "code": "ROM",
     "country": "Italy",
-    "airport": "All airports"
+    "airport": "All airports",
+    "aliases": [
+      "Rom",
+      "Roma"
+    ]
   },
   {
     "city": "Milan",
     "code": "MIL",
     "country": "Italy",
-    "airport": "All airports"
+    "airport": "All airports",
+    "aliases": [
+      "Mailand",
+      "Milano"
+    ]
   },
   {
     "city": "Vienna",
     "code": "VIE",
     "country": "Austria",
-    "airport": "Vienna Intl"
+    "airport": "Vienna Intl",
+    "aliases": [
+      "Wien"
+    ]
   },
   {
     "city": "Amsterdam",
@@ -165,7 +198,11 @@
     "city": "Brussels",
     "code": "BRU",
     "country": "Belgium",
-    "airport": "Zaventem"
+    "airport": "Zaventem",
+    "aliases": [
+      "Brüssel",
+      "Bruxelles"
+    ]
   },
   {
     "city": "Madrid",
@@ -177,12 +214,644 @@
     "city": "Copenhagen",
     "code": "CPH",
     "country": "Denmark",
-    "airport": "Kastrup"
+    "airport": "Kastrup",
+    "aliases": [
+      "Kopenhagen",
+      "København"
+    ]
   },
   {
     "city": "Stockholm",
     "code": "STO",
     "country": "Sweden",
     "airport": "All airports"
+  },
+  {
+    "city": "Geneva",
+    "code": "GVA",
+    "country": "Switzerland",
+    "airport": "Genève Aéroport",
+    "aliases": [
+      "Genf",
+      "Genève",
+      "Ginevra"
+    ]
+  },
+  {
+    "city": "Basel",
+    "code": "BSL",
+    "country": "Switzerland",
+    "airport": "EuroAirport Basel-Mulhouse",
+    "aliases": [
+      "Bâle"
+    ]
+  },
+  {
+    "city": "Bern",
+    "code": "BRN",
+    "country": "Switzerland",
+    "airport": "Bern Airport"
+  },
+  {
+    "city": "Lugano",
+    "code": "LUG",
+    "country": "Switzerland",
+    "airport": "Lugano Airport"
+  },
+  {
+    "city": "Munich",
+    "code": "MUC",
+    "country": "Germany",
+    "airport": "Munich Airport",
+    "aliases": [
+      "München",
+      "Muenchen"
+    ]
+  },
+  {
+    "city": "Frankfurt",
+    "code": "FRA",
+    "country": "Germany",
+    "airport": "Frankfurt am Main Airport",
+    "aliases": [
+      "Frankfurt am Main"
+    ]
+  },
+  {
+    "city": "Hamburg",
+    "code": "HAM",
+    "country": "Germany",
+    "airport": "Hamburg Airport"
+  },
+  {
+    "city": "Düsseldorf",
+    "code": "DUS",
+    "country": "Germany",
+    "airport": "Düsseldorf Airport",
+    "aliases": [
+      "Duesseldorf"
+    ]
+  },
+  {
+    "city": "Cologne",
+    "code": "CGN",
+    "country": "Germany",
+    "airport": "Cologne Bonn Airport",
+    "aliases": [
+      "Köln",
+      "Koeln"
+    ]
+  },
+  {
+    "city": "Stuttgart",
+    "code": "STR",
+    "country": "Germany",
+    "airport": "Stuttgart Airport"
+  },
+  {
+    "city": "Prague",
+    "code": "PRG",
+    "country": "Czech Republic",
+    "airport": "Václav Havel Airport Prague",
+    "aliases": [
+      "Prag",
+      "Praha"
+    ]
+  },
+  {
+    "city": "Budapest",
+    "code": "BUD",
+    "country": "Hungary",
+    "airport": "Budapest Ferenc Liszt"
+  },
+  {
+    "city": "Warsaw",
+    "code": "WAW",
+    "country": "Poland",
+    "airport": "Warsaw Chopin",
+    "aliases": [
+      "Warschau",
+      "Warszawa"
+    ]
+  },
+  {
+    "city": "Krakow",
+    "code": "KRK",
+    "country": "Poland",
+    "airport": "Kraków John Paul II",
+    "aliases": [
+      "Krakau",
+      "Kraków"
+    ]
+  },
+  {
+    "city": "Athens",
+    "code": "ATH",
+    "country": "Greece",
+    "airport": "Athens International",
+    "aliases": [
+      "Athen"
+    ]
+  },
+  {
+    "city": "Thessaloniki",
+    "code": "SKG",
+    "country": "Greece",
+    "airport": "Thessaloniki Macedonia",
+    "aliases": [
+      "Saloniki"
+    ]
+  },
+  {
+    "city": "Heraklion",
+    "code": "HER",
+    "country": "Greece",
+    "airport": "Heraklion Nikos Kazantzakis",
+    "aliases": [
+      "Iraklio"
+    ]
+  },
+  {
+    "city": "Rhodes",
+    "code": "RHO",
+    "country": "Greece",
+    "airport": "Rhodes Diagoras",
+    "aliases": [
+      "Rhodos"
+    ]
+  },
+  {
+    "city": "Malaga",
+    "code": "AGP",
+    "country": "Spain",
+    "airport": "Málaga-Costa del Sol",
+    "aliases": [
+      "Málaga"
+    ]
+  },
+  {
+    "city": "Seville",
+    "code": "SVQ",
+    "country": "Spain",
+    "airport": "Seville Airport",
+    "aliases": [
+      "Sevilla"
+    ]
+  },
+  {
+    "city": "Valencia",
+    "code": "VLC",
+    "country": "Spain",
+    "airport": "Valencia Airport"
+  },
+  {
+    "city": "Palma de Mallorca",
+    "code": "PMI",
+    "country": "Spain",
+    "airport": "Palma de Mallorca Airport",
+    "aliases": [
+      "Mallorca",
+      "Palma"
+    ]
+  },
+  {
+    "city": "Ibiza",
+    "code": "IBZ",
+    "country": "Spain",
+    "airport": "Ibiza Airport"
+  },
+  {
+    "city": "Alicante",
+    "code": "ALC",
+    "country": "Spain",
+    "airport": "Alicante-Elche"
+  },
+  {
+    "city": "Gran Canaria",
+    "code": "LPA",
+    "country": "Spain",
+    "airport": "Gran Canaria Airport",
+    "aliases": [
+      "Las Palmas"
+    ]
+  },
+  {
+    "city": "Porto",
+    "code": "OPO",
+    "country": "Portugal",
+    "airport": "Francisco Sá Carneiro",
+    "aliases": [
+      "Oporto"
+    ]
+  },
+  {
+    "city": "Faro",
+    "code": "FAO",
+    "country": "Portugal",
+    "airport": "Faro Airport",
+    "aliases": [
+      "Algarve"
+    ]
+  },
+  {
+    "city": "Funchal",
+    "code": "FNC",
+    "country": "Portugal",
+    "airport": "Madeira Cristiano Ronaldo",
+    "aliases": [
+      "Madeira"
+    ]
+  },
+  {
+    "city": "Nice",
+    "code": "NCE",
+    "country": "France",
+    "airport": "Nice Côte d'Azur",
+    "aliases": [
+      "Nizza"
+    ]
+  },
+  {
+    "city": "Marseille",
+    "code": "MRS",
+    "country": "France",
+    "airport": "Marseille Provence"
+  },
+  {
+    "city": "Lyon",
+    "code": "LYS",
+    "country": "France",
+    "airport": "Lyon-Saint Exupéry"
+  },
+  {
+    "city": "Bordeaux",
+    "code": "BOD",
+    "country": "France",
+    "airport": "Bordeaux-Mérignac"
+  },
+  {
+    "city": "Venice",
+    "code": "VCE",
+    "country": "Italy",
+    "airport": "Venice Marco Polo",
+    "aliases": [
+      "Venedig",
+      "Venezia"
+    ]
+  },
+  {
+    "city": "Naples",
+    "code": "NAP",
+    "country": "Italy",
+    "airport": "Naples International",
+    "aliases": [
+      "Neapel",
+      "Napoli"
+    ]
+  },
+  {
+    "city": "Florence",
+    "code": "FLR",
+    "country": "Italy",
+    "airport": "Florence Peretola",
+    "aliases": [
+      "Florenz",
+      "Firenze"
+    ]
+  },
+  {
+    "city": "Bologna",
+    "code": "BLQ",
+    "country": "Italy",
+    "airport": "Bologna Guglielmo Marconi"
+  },
+  {
+    "city": "Catania",
+    "code": "CTA",
+    "country": "Italy",
+    "airport": "Catania Fontanarossa"
+  },
+  {
+    "city": "Palermo",
+    "code": "PMO",
+    "country": "Italy",
+    "airport": "Palermo Falcone-Borsellino"
+  },
+  {
+    "city": "Olbia",
+    "code": "OLB",
+    "country": "Italy",
+    "airport": "Olbia Costa Smeralda"
+  },
+  {
+    "city": "Cagliari",
+    "code": "CAG",
+    "country": "Italy",
+    "airport": "Cagliari Elmas"
+  },
+  {
+    "city": "Dubrovnik",
+    "code": "DBV",
+    "country": "Croatia",
+    "airport": "Dubrovnik Airport"
+  },
+  {
+    "city": "Split",
+    "code": "SPU",
+    "country": "Croatia",
+    "airport": "Split Airport"
+  },
+  {
+    "city": "Zagreb",
+    "code": "ZAG",
+    "country": "Croatia",
+    "airport": "Zagreb Franjo Tuđman"
+  },
+  {
+    "city": "Belgrade",
+    "code": "BEG",
+    "country": "Serbia",
+    "airport": "Belgrade Nikola Tesla",
+    "aliases": [
+      "Belgrad",
+      "Beograd"
+    ]
+  },
+  {
+    "city": "Sofia",
+    "code": "SOF",
+    "country": "Bulgaria",
+    "airport": "Sofia Airport"
+  },
+  {
+    "city": "Bucharest",
+    "code": "OTP",
+    "country": "Romania",
+    "airport": "Bucharest Henri Coandă",
+    "aliases": [
+      "Bukarest",
+      "București"
+    ]
+  },
+  {
+    "city": "Larnaca",
+    "code": "LCA",
+    "country": "Cyprus",
+    "airport": "Larnaca International"
+  },
+  {
+    "city": "Malta",
+    "code": "MLA",
+    "country": "Malta",
+    "airport": "Malta International",
+    "aliases": [
+      "Valletta"
+    ]
+  },
+  {
+    "city": "Reykjavik",
+    "code": "KEF",
+    "country": "Iceland",
+    "airport": "Keflavík International",
+    "aliases": [
+      "Reykjavík",
+      "Island"
+    ]
+  },
+  {
+    "city": "Oslo",
+    "code": "OSL",
+    "country": "Norway",
+    "airport": "Oslo Gardermoen"
+  },
+  {
+    "city": "Helsinki",
+    "code": "HEL",
+    "country": "Finland",
+    "airport": "Helsinki-Vantaa"
+  },
+  {
+    "city": "Riga",
+    "code": "RIX",
+    "country": "Latvia",
+    "airport": "Riga International"
+  },
+  {
+    "city": "Tallinn",
+    "code": "TLL",
+    "country": "Estonia",
+    "airport": "Tallinn Lennart Meri"
+  },
+  {
+    "city": "Vilnius",
+    "code": "VNO",
+    "country": "Lithuania",
+    "airport": "Vilnius International",
+    "aliases": [
+      "Wilna"
+    ]
+  },
+  {
+    "city": "Dublin",
+    "code": "DUB",
+    "country": "Ireland",
+    "airport": "Dublin Airport"
+  },
+  {
+    "city": "Edinburgh",
+    "code": "EDI",
+    "country": "United Kingdom",
+    "airport": "Edinburgh Airport"
+  },
+  {
+    "city": "Manchester",
+    "code": "MAN",
+    "country": "United Kingdom",
+    "airport": "Manchester Airport"
+  },
+  {
+    "city": "Antalya",
+    "code": "AYT",
+    "country": "Turkey",
+    "airport": "Antalya Airport"
+  },
+  {
+    "city": "Marrakesh",
+    "code": "RAK",
+    "country": "Morocco",
+    "airport": "Marrakesh Menara",
+    "aliases": [
+      "Marrakech",
+      "Marrakesch"
+    ]
+  },
+  {
+    "city": "Cairo",
+    "code": "CAI",
+    "country": "Egypt",
+    "airport": "Cairo International",
+    "aliases": [
+      "Kairo"
+    ]
+  },
+  {
+    "city": "Hurghada",
+    "code": "HRG",
+    "country": "Egypt",
+    "airport": "Hurghada International"
+  },
+  {
+    "city": "Tel Aviv",
+    "code": "TLV",
+    "country": "Israel",
+    "airport": "Ben Gurion"
+  },
+  {
+    "city": "Abu Dhabi",
+    "code": "AUH",
+    "country": "United Arab Emirates",
+    "airport": "Zayed International"
+  },
+  {
+    "city": "Malé",
+    "code": "MLE",
+    "country": "Maldives",
+    "airport": "Velana International",
+    "aliases": [
+      "Male",
+      "Malediven",
+      "Maldives"
+    ]
+  },
+  {
+    "city": "Denpasar",
+    "code": "DPS",
+    "country": "Indonesia",
+    "airport": "Ngurah Rai (Bali)",
+    "aliases": [
+      "Bali"
+    ]
+  },
+  {
+    "city": "Hong Kong",
+    "code": "HKG",
+    "country": "Hong Kong",
+    "airport": "Hong Kong International",
+    "aliases": [
+      "Hongkong"
+    ]
+  },
+  {
+    "city": "Seoul",
+    "code": "ICN",
+    "country": "South Korea",
+    "airport": "Incheon International",
+    "aliases": [
+      "Seoul Incheon"
+    ]
+  },
+  {
+    "city": "Kuala Lumpur",
+    "code": "KUL",
+    "country": "Malaysia",
+    "airport": "Kuala Lumpur International"
+  },
+  {
+    "city": "Phuket",
+    "code": "HKT",
+    "country": "Thailand",
+    "airport": "Phuket International"
+  },
+  {
+    "city": "Hanoi",
+    "code": "HAN",
+    "country": "Vietnam",
+    "airport": "Noi Bai International"
+  },
+  {
+    "city": "Ho Chi Minh City",
+    "code": "SGN",
+    "country": "Vietnam",
+    "airport": "Tan Son Nhat",
+    "aliases": [
+      "Saigon",
+      "Ho-Chi-Minh-Stadt"
+    ]
+  },
+  {
+    "city": "Cancun",
+    "code": "CUN",
+    "country": "Mexico",
+    "airport": "Cancún International",
+    "aliases": [
+      "Cancún"
+    ]
+  },
+  {
+    "city": "Mexico City",
+    "code": "MEX",
+    "country": "Mexico",
+    "airport": "Benito Juárez International",
+    "aliases": [
+      "Mexiko-Stadt",
+      "Ciudad de México"
+    ]
+  },
+  {
+    "city": "Miami",
+    "code": "MIA",
+    "country": "United States",
+    "airport": "Miami International"
+  },
+  {
+    "city": "Boston",
+    "code": "BOS",
+    "country": "United States",
+    "airport": "Logan International"
+  },
+  {
+    "city": "Rio de Janeiro",
+    "code": "GIG",
+    "country": "Brazil",
+    "airport": "Rio de Janeiro Galeão",
+    "aliases": [
+      "Rio"
+    ]
+  },
+  {
+    "city": "Cape Town",
+    "code": "CPT",
+    "country": "South Africa",
+    "airport": "Cape Town International",
+    "aliases": [
+      "Kapstadt"
+    ]
+  },
+  {
+    "city": "Johannesburg",
+    "code": "JNB",
+    "country": "South Africa",
+    "airport": "O. R. Tambo International"
+  },
+  {
+    "city": "Nairobi",
+    "code": "NBO",
+    "country": "Kenya",
+    "airport": "Jomo Kenyatta International"
+  },
+  {
+    "city": "Zanzibar",
+    "code": "ZNZ",
+    "country": "Tanzania",
+    "airport": "Abeid Amani Karume",
+    "aliases": [
+      "Sansibar"
+    ]
+  },
+  {
+    "city": "Mauritius",
+    "code": "MRU",
+    "country": "Mauritius",
+    "airport": "Sir Seewoosagur Ramgoolam"
   }
 ]

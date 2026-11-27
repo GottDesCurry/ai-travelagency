@@ -12,9 +12,15 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
+    // Tests and scripts are plain CommonJS run by Node (node --test); require() is the correct module syntax there.
+    files: ["**/*.cjs"],
+    languageOptions: { sourceType: "commonjs" },
     rules: {
-      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-require-imports": "off",
     },
+  },
+  {
+    ignores: [".next/**", "node_modules/**", "next-env.d.ts", "test-results/**", "playwright-report/**"],
   },
 ];
 
