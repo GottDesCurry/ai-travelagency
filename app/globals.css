@@ -192,3 +192,23 @@ main>section:not(.hero):not(.section-wrap),main>div.max-w-5xl { margin-top:30px;
 @media print { .site-header,.site-footer,.flight-experience { display:none!important; } body { background:white; color:black; }.offer-card,.planner-card { background:white; border:1px solid #ddd; color:black; }.offer-card p,.subtle-note,.form-note,.offer-price { color:black; }.hero { display:none; } }
 
 @media(max-width:600px) { .intro-wish { top:22%; }.intro-wish-text { font-size:14.5px; letter-spacing:-.2px; } }
+
+/* Merkliste, Herz und Kombination Flug + Hotel */
+.offer-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.favorite-button { flex:none; width:44px; height:44px; display:inline-grid; place-items:center; border-radius:99px; border:1px solid #9bcaff40; background:#0b1a33aa; color:#cfe6ff; cursor:pointer; transition:transform .15s ease, background .15s ease; }
+.favorite-button svg path { fill:none; stroke:currentColor; stroke-width:1.8; stroke-linejoin:round; }
+.favorite-button:hover:not(:disabled) { transform:scale(1.06); background:#16305acc; }
+.favorite-button:focus-visible { outline:2px solid #9eeaff; outline-offset:2px; }
+.favorite-button.is-saved { color:#ff6b8b; border-color:#ff6b8b66; }
+.favorite-button.is-saved svg path { fill:currentColor; }
+.favorite-button:disabled { opacity:.45; cursor:not-allowed; }
+.favorites-list { list-style:none; margin:0 0 16px; padding:0; display:grid; gap:12px; }
+.favorite-item { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; padding:16px 20px; border:1px solid #9bcaff2e; border-radius:15px; background:#0d1c36cc; overflow-wrap:anywhere; }
+.favorite-item > div:first-child { min-width:0; flex:1 1 260px; }
+.favorite-item p { margin:2px 0 0; font-size:13px; color:var(--muted); }
+.favorite-kind { display:inline-block; margin-right:8px; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:#9eeaff; }
+.favorite-actions { display:flex; gap:10px; align-items:flex-start; flex-wrap:wrap; }
+.combination-card { padding:24px 28px; border-radius:18px; border:1px solid #60d5ff55; background:linear-gradient(135deg,#123a5ccc,#0a1a33dd); }
+.combination-card h2 { margin:6px 0 8px; font-size:clamp(20px,3vw,28px); }
+.combination-card p { margin:0 0 6px; font-size:14px; line-height:1.7; overflow-wrap:anywhere; }
+@media (prefers-reduced-motion: reduce) { .favorite-button { transition:none; } }

@@ -8,8 +8,9 @@ function load(path, dependencies = {}) {
 }
 const offers = load('src/lib/flight-offers.ts')
 const BookingLink = load('src/components/BookingLink.tsx', {'@/lib/flight-offers':offers}).default
-const FlightCard = load('src/components/FlightCard.tsx', {'./BookingLink':BookingLink,'next/image':()=>null}).default
-const HotelCard = load('src/components/HotelCard.tsx', {'./BookingLink':BookingLink,'next/image':()=>null}).default
+const FavoriteButton = load('src/components/FavoriteButton.tsx').default
+const FlightCard = load('src/components/FlightCard.tsx', {'./BookingLink':BookingLink,'./FavoriteButton':FavoriteButton,'next/image':()=>null}).default
+const HotelCard = load('src/components/HotelCard.tsx', {'./BookingLink':BookingLink,'./FavoriteButton':FavoriteButton,'./FlightCard':{},'next/image':()=>null}).default
 const flight={id:'1',price:120,currency:'CHF',duration:'PT2H',stops:0,departure:{iataCode:'ZRH',at:'2026-12-01T10:00:00'},arrival:{iataCode:'BER',at:'2026-12-01T12:00:00'},airline:'LX',airlineCode:'LX'}
 test('both result cards preserve the provider target and secure new-tab attributes',()=>{
  const target='https://example.com/offer?id=123&adults=4'
@@ -30,4 +31,12 @@ test('flight card renders the return direction and every connecting segment',()=
  const leg={duration:'PT4H',stops:1,departure:{iataCode:'BER',at:'2026-12-05T10:00:00'},arrival:{iataCode:'ZRH',at:'2026-12-05T14:00:00'},airline:'LX',airlineCode:'LX',segments:[{departure:{iataCode:'BER',at:'2026-12-05T10:00:00'},arrival:{iataCode:'FRA',at:'2026-12-05T11:00:00'},airlineCode:'LX'},{departure:{iataCode:'FRA',at:'2026-12-05T12:00:00'},arrival:{iataCode:'ZRH',at:'2026-12-05T14:00:00'},airlineCode:'LH'}]}
  const html=renderToStaticMarkup(React.createElement(FlightCard,{flight:{...flight,returnLeg:leg}}))
  assert.match(html,/Hinflug: ZRH → BER/);assert.match(html,/Rückflug: BER → ZRH/);assert.match(html,/BER → FRA/);assert.match(html,/FRA → ZRH/);assert.match(html,/für Hin- und Rückflug/)
+})
+
+test('the favorite heart is optional and announces its state',()=>{
+ assert.ok(!renderToStaticMarkup(React.createElement(FlightCard,{flight})).includes('favorite-button'))
+ const off=renderToStaticMarkup(React.createElement(FlightCard,{flight,favorite:{saved:false,onToggle(){}}}))
+ assert.match(off,/aria-pressed="false"/);assert.match(off,/aria-label="Flug ZRH nach BER[^"]*merken"/)
+ const on=renderToStaticMarkup(React.createElement(HotelCard,{hotel:{id:'h',name:'Hotel Mitte',address:'Berlin',rating:'',price:null,currency:'EUR'},favorite:{saved:true,onToggle(){}}}))
+ assert.match(on,/aria-pressed="true"/);assert.match(on,/Hotel Hotel Mitte von der Merkliste entfernen/)
 })

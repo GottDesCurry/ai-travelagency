@@ -1,5 +1,6 @@
 'use client'
 import BookingLink from './BookingLink'
+import FavoriteButton from './FavoriteButton'
 import type { FlightOffer, FlightLeg } from '@/lib/flight-offers'
 
 function formatDate(value: string): string {
@@ -19,10 +20,14 @@ function Leg({ leg, label }: { leg: FlightLeg; label: string }) {
     </ol>}
   </section>
 }
-export default function FlightCard({ flight, recommended = false }: { flight: FlightOffer; recommended?: boolean }) {
+export interface FavoriteControl { saved: boolean; disabled?: boolean; onToggle: () => void }
+export default function FlightCard({ flight, recommended = false, favorite }: { flight: FlightOffer; recommended?: boolean; favorite?: FavoriteControl }) {
   const outbound = flight.outboundLeg || { duration: flight.duration, stops: flight.stops, departure: flight.departure, arrival: flight.arrival, airline: flight.airline, airlineCode: flight.airlineCode, segments: [] }
   return <article className="FlightCard offer-card space-y-4">
-    {recommended && <span className="recommendation">Empfohlen</span>}
+    {(recommended || favorite) && <div className="offer-card-top">
+      {recommended ? <span className="recommendation">Empfohlen</span> : <span/>}
+      {favorite && <FavoriteButton {...favorite} label={`Flug ${flight.departure.iataCode} nach ${flight.arrival.iataCode}, ${flight.price.toLocaleString('de-CH')} ${flight.currency}`}/>}
+    </div>}
     <Leg leg={outbound} label="Hinflug" />
     {flight.returnLeg && <Leg leg={flight.returnLeg} label="Rückflug" />}
     <p className="offer-price">{flight.price.toLocaleString('de-CH', { minimumFractionDigits: 2 })} {flight.currency} laut Anbieter{flight.returnLeg ? ' für Hin- und Rückflug' : ''}</p>

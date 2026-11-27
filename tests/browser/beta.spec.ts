@@ -215,3 +215,33 @@ test('an unknown city shows a clear message instead of picking an airport',async
  await expect(page.getByLabel('Reiseziel',{exact:true})).toHaveAttribute('aria-invalid','true')
  expect(providerCalls).toBe(0)
 })
+test('favorites survive a reload, the cheapest flight + hotel total is shown and past dates are blocked',async({page})=>{
+ const base={currency:'CHF',duration:'PT2H',stops:0,departure:{iataCode:'ZRH',at:'2099-01-01T10:00:00'},arrival:{iataCode:'BER',at:'2099-01-01T12:00:00'},airline:'LX',airlineCode:'LX'}
+ const offers=[{...base,id:'cheap',price:100,bookingLink:'https://example.com/cheap'},{...base,id:'dear',price:180,bookingLink:'https://example.com/dear'}]
+ const hotels=[{id:'h1',name:'Hotel Mitte',address:'Berlin',rating:'Sehr gut',price:320.5,currency:'CHF',bookingLink:'https://example.com/h1'},{id:'h2',name:'Hotel Ohne Preis',address:'Berlin',rating:'',price:null,currency:'CHF'},{id:'h3',name:'Hotel Dollar',address:'Berlin',rating:'',price:50,currency:'USD'}]
+ await page.route('**/api/flights-aggregated?*',route=>route.fulfill({json:offers}))
+ await page.route('**/api/ai',route=>route.fulfill({json:offers}))
+ await page.route('**/api/hotels?*',route=>route.fulfill({json:{results:hotels}}))
+ await page.goto('/')
+ const today=await page.evaluate(()=>new Date().toLocaleDateString('en-CA',{timeZone:'Europe/Zurich'}))
+ await expect(page.getByLabel('Hinreise / Check-in')).toHaveAttribute('min',today)
+ await fillTrip(page)
+ await expect(page.getByLabel('Rückreise / Check-out')).toHaveAttribute('min','2099-01-01')
+ await page.getByRole('button',{name:'Suche starten'}).click()
+ // USD hotel and unpriced hotel are not mixed into the total.
+ await expect(page.getByRole('heading',{name:/Flug \+ Hotel ab 420[.,]50 CHF/})).toBeVisible()
+ await expect(page.getByText(/ohne Umrechnung/)).toBeVisible()
+ const heart=page.getByRole('button',{name:/Hotel Hotel Mitte merken/})
+ await heart.click()
+ await expect(page.getByRole('button',{name:/Hotel Hotel Mitte von der Merkliste entfernen/}).first()).toHaveAttribute('aria-pressed','true')
+ await page.locator('.FlightCard').first().getByRole('button',{name:/merken$/}).click()
+ await expect(page.getByRole('heading',{name:'Merkliste · 2'})).toBeVisible()
+ await page.reload()
+ await expect(page.getByRole('heading',{name:'Merkliste · 2'})).toBeVisible()
+ await expect(page.locator('.favorite-item').filter({hasText:'Hotel Mitte'}).getByRole('link',{name:'Zum Hotelangebot'})).toHaveAttribute('href','https://example.com/h1')
+ await page.locator('.favorite-item').filter({hasText:'Hotel Mitte'}).getByRole('button',{name:/entfernen/}).click()
+ await expect(page.getByRole('heading',{name:'Merkliste · 1'})).toBeVisible()
+ await page.getByRole('button',{name:/entfernen/}).click()
+ await page.reload();await expect(page.locator('.favorite-item')).toHaveCount(0)
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy()
+})
