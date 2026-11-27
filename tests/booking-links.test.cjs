@@ -2,7 +2,7 @@ const test = require('node:test'), assert = require('node:assert/strict'), ts = 
 const {renderToStaticMarkup} = require('react-dom/server')
 const React = require('react')
 function load(path, dependencies = {}) {
- const m = new Module(path); m.require = name => dependencies[name] || require(name)
+ const m = new Module(path); m.require = name => dependencies[name] || (name.endsWith('/rate-limit') ? require('./helpers/rate-limit.cjs') : require(name))
  m._compile(ts.transpileModule(fs.readFileSync(path, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true, jsx: ts.JsxEmit.ReactJSX } }).outputText, path)
  return m.exports
 }

@@ -27,7 +27,7 @@ test('unsafe links are removed', () => {
 })
 const handlerSource = ts.transpileModule(fs.readFileSync('pages/api/ai.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText
 const handlerModule = new Module('ai-handler')
-handlerModule.require = name => name.includes('flight-offers') ? compiled.exports : name === 'openai' ? class { constructor() { throw new Error('No live AI calls in tests') } } : require(name)
+handlerModule.require = name => name.includes('flight-offers') ? compiled.exports : name.endsWith('/rate-limit') ? require('./helpers/rate-limit.cjs') : name === 'openai' ? class { constructor() { throw new Error('No live AI calls in tests') } } : require(name)
 handlerModule._compile(handlerSource, 'ai-handler.cjs')
 async function invoke(method, body) {
  let status, payload

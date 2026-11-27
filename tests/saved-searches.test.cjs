@@ -1,5 +1,5 @@
 const test=require('node:test'),assert=require('node:assert/strict'),ts=require('typescript'),fs=require('node:fs'),Module=require('node:module')
-function load(path,deps={}){const m=new Module(path);m.require=name=>deps[name]||require(name);m._compile(ts.transpileModule(fs.readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,path);return m.exports}
+function load(path,deps={}){const m=new Module(path);m.require=name=>deps[name]||(name.endsWith('/rate-limit')?require('./helpers/rate-limit.cjs'):require(name));m._compile(ts.transpileModule(fs.readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,path);return m.exports}
 const trip=load('src/lib/trip-search.ts'),saved=load('src/lib/saved-searches.ts',{'./trip-search':trip})
 const value={id:'abc',origin:'ZRH',destination:'BER',date:'2099-01-01',returnDate:'2099-01-05',people:2,searchFlights:true,searchHotels:true}
 test('saved searches round-trip only the documented fields',()=>{

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { searchFlights } from '@/lib/flight-search'
+import { allowRequest, routeClient, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit'
 // Legacy endpoint: search only, never a booking operation.
 export async function POST(req: NextRequest) {
+  if (!allowRequest('provider', routeClient(req))) return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 })
   let body
   try { body = await req.json() } catch { return NextResponse.json({ error: 'Ungültiges JSON.' }, { status: 400 }) }
   if (!body || typeof body !== 'object' || Array.isArray(body)) return NextResponse.json({ error: 'Ein Suchobjekt wird erwartet.' }, { status: 400 })

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import OpenAI from 'openai'
+import { allowRequest, pagesClient } from '../../src/lib/rate-limit'
 import { fallbackFlights, isFlightOffer, selectFlightIds } from '../../src/lib/flight-offers'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -9,7 +10,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   const offers = req.body
   if (!offers.length) return res.status(200).json([])
-  if (!process.env.OPENAI_API_KEY) return res.status(200).json(fallbackFlights(offers))
+  // Without a key or over the cost limit: deterministic ranking of the same real offers.
+  if (!process.env.OPENAI_API_KEY || !allowRequest('ai', pagesClient(req))) return res.status(200).json(fallbackFlights(offers))
   try {
     const response = await new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 15000, maxRetries: 0 }).chat.completions.create({
       model: 'gpt-4o',

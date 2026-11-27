@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import axios from 'axios'
 import { providerFailure } from '../../src/lib/provider-errors'
+import { allowRequest, pagesClient, RATE_LIMIT_MESSAGE } from '../../src/lib/rate-limit'
 import { normalizeHotelOffers } from '../../src/lib/hotel-offers'
 import { validAdults, validateTravelDates } from '../../src/lib/trip-search'
 const API_HOST = 'booking-com18.p.rapidapi.com'
@@ -10,6 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const dateError = validateTravelDates(checkin, checkout, true)
   if (typeof city !== 'string' || !city.trim() || !validAdults(adults) || dateError) return res.status(400).json({ error: dateError || 'Eine Stadt und 1–9 Erwachsene sind erforderlich.' })
   if (!process.env.RAPIDAPI_KEY) return res.status(503).json({ error: 'Die Hotelsuche ist noch nicht konfiguriert.' })
+  if (!allowRequest('provider', pagesClient(req))) return res.status(429).json({ error: RATE_LIMIT_MESSAGE })
   const options = { timeout: 15000, headers: { 'X-RapidAPI-Key': process.env.RAPIDAPI_KEY, 'X-RapidAPI-Host': API_HOST } }
   try {
     const locationRes = await axios.get(`https://${API_HOST}/stays/auto-complete`, { ...options, params: { query: city.trim() } })

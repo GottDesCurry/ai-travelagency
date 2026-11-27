@@ -3,6 +3,7 @@ import OpenAI from 'openai'
 
 import { normalizeParsedTrip } from '@/lib/parsed-trip'
 import { aiInputFailure } from '@/lib/provider-errors'
+import { allowRequest, routeClient, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
   let body
@@ -10,6 +11,7 @@ export async function POST(req: NextRequest) {
   const prompt = body?.prompt
   if (typeof prompt !== 'string' || !prompt.trim() || prompt.length > 4000) return NextResponse.json({ error: 'Bitte einen Reiseplan mit maximal 4000 Zeichen eingeben.' }, { status: 400 })
   if (!process.env.OPENAI_API_KEY) return NextResponse.json({ error: 'Die KI-Reiseplanung ist noch nicht konfiguriert.' }, { status: 503 })
+  if (!allowRequest('ai', routeClient(req))) return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 })
 
   const systemPrompt = `
 Heute ist ${new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Zurich' })}. Erfinde keine fehlenden Angaben.

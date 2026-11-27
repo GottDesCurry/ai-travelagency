@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { allowRequest, routeClient, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit'
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const name = new URL(req.url).searchParams.get('name')?.trim()
   if (!name || name.length > 120) return NextResponse.json({ error: 'Bitte einen Ortsnamen mit maximal 120 Zeichen eingeben.' }, { status: 400 })
   if (!process.env.RAPIDAPI_KEY) return NextResponse.json({ error: 'Die Ortssuche ist noch nicht konfiguriert.' }, { status: 503 })
+  if (!allowRequest('provider', routeClient(req))) return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 })
   try {
     const query = new URLSearchParams({ name, locale: 'de' })
     const response = await fetch(`https://booking-com.p.rapidapi.com/v1/hotels/locations?${query}`, {

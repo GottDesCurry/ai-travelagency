@@ -1,7 +1,7 @@
 const test = require('node:test'), assert = require('node:assert/strict')
 const fs = require('node:fs'), ts = require('typescript'), Module = require('node:module')
 function load(path, deps = {}) {
- const m = new Module(path); m.require = name => deps[name] || require(name)
+ const m = new Module(path); m.require = name => deps[name] || (name.endsWith('/rate-limit') ? require('./helpers/rate-limit.cjs') : require(name))
  m._compile(ts.transpileModule(fs.readFileSync(path, 'utf8'), {compilerOptions:{module:ts.ModuleKind.CommonJS,esModuleInterop:true}}).outputText,path)
  return m.exports
 }

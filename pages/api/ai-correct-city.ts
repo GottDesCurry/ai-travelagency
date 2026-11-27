@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import OpenAI from 'openai'
+import { allowRequest, pagesClient, RATE_LIMIT_MESSAGE } from '../../src/lib/rate-limit'
 
 // Typisierung für die Anfrage und Antwort
 type CorrectCityResponse = { corrected?: string; error?: string }
@@ -20,6 +21,8 @@ export default async function handler(
   }
 
   if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'Die KI-Ortskorrektur ist noch nicht konfiguriert.' })
+
+  if (!allowRequest('ai', pagesClient(req))) return res.status(429).json({ error: RATE_LIMIT_MESSAGE })
 
   try {
     const completion = await new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 15000, maxRetries: 0 }).chat.completions.create({
