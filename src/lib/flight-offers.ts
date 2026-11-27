@@ -27,8 +27,12 @@ export interface FlightOffer {
   returnLeg?: FlightLeg
 }
 
-function record(value: unknown): Record<string, any> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, any> : {}
+export type UnknownRecord = Record<string, unknown>
+export function record(value: unknown): UnknownRecord {
+  return value !== null && typeof value === 'object' && !Array.isArray(value) ? value as UnknownRecord : {}
+}
+function isNonNegativeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0
 }
 function airport(value: unknown) {
   const item = record(value)
@@ -41,7 +45,7 @@ export function httpsBookingLink(value: unknown): string | undefined {
 }
 function isFlightLeg(value: unknown): value is FlightLeg {
   const leg = record(value)
-  return typeof leg.duration === 'string' && Number.isInteger(leg.stops) && leg.stops >= 0 && !!airport(leg.departure) && !!airport(leg.arrival) && typeof leg.airline === 'string' && typeof leg.airlineCode === 'string' && Array.isArray(leg.segments) && leg.segments.length > 0 && leg.segments.every((segment: unknown) => {
+  return typeof leg.duration === 'string' && isNonNegativeInteger(leg.stops) && !!airport(leg.departure) && !!airport(leg.arrival) && typeof leg.airline === 'string' && typeof leg.airlineCode === 'string' && Array.isArray(leg.segments) && leg.segments.length > 0 && leg.segments.every((segment: unknown) => {
     const item = record(segment)
     return !!airport(item.departure) && !!airport(item.arrival) && typeof item.airlineCode === 'string'
   })
@@ -60,7 +64,7 @@ function normalizeLeg(value: unknown): FlightLeg | null {
 }
 export function isFlightOffer(value: unknown): value is FlightOffer {
   const f = record(value)
-  return typeof f.id === 'string' && f.id.length > 0 && typeof f.price === 'number' && Number.isFinite(f.price) && f.price >= 0 && typeof f.currency === 'string' && /^[A-Z]{3}$/.test(f.currency) && typeof f.duration === 'string' && Number.isInteger(f.stops) && f.stops >= 0 && !!airport(f.departure) && !!airport(f.arrival) && typeof f.airline === 'string' && typeof f.airlineCode === 'string' && (f.bookingLink === undefined || httpsBookingLink(f.bookingLink) !== undefined) && (f.outboundLeg === undefined || isFlightLeg(f.outboundLeg)) && (f.returnLeg === undefined || isFlightLeg(f.returnLeg))
+  return typeof f.id === 'string' && f.id.length > 0 && typeof f.price === 'number' && Number.isFinite(f.price) && f.price >= 0 && typeof f.currency === 'string' && /^[A-Z]{3}$/.test(f.currency) && typeof f.duration === 'string' && isNonNegativeInteger(f.stops) && !!airport(f.departure) && !!airport(f.arrival) && typeof f.airline === 'string' && typeof f.airlineCode === 'string' && (f.bookingLink === undefined || httpsBookingLink(f.bookingLink) !== undefined) && (f.outboundLeg === undefined || isFlightLeg(f.outboundLeg)) && (f.returnLeg === undefined || isFlightLeg(f.returnLeg))
 }
 // Adapter for the itinerary-shaped payload currently used by Booking COM 18.
 // Unknown upstream envelopes are errors, rather than successful empty searches.
@@ -71,9 +75,10 @@ export function normalizeFlightOffers(payload: unknown, requireReturn = false): 
   const ids = new Set<string>()
   for (const raw of data) {
     const f = record(raw)
-    const outboundLeg = normalizeLeg(f.itineraries?.[0])
-    const hasReturn = Array.isArray(f.itineraries) && f.itineraries.length > 1
-    const returnLeg = hasReturn ? normalizeLeg(f.itineraries[1]) : null
+    const itineraries: unknown[] = Array.isArray(f.itineraries) ? f.itineraries : []
+    const outboundLeg = normalizeLeg(itineraries[0])
+    const hasReturn = itineraries.length > 1
+    const returnLeg = hasReturn ? normalizeLeg(itineraries[1]) : null
     if (!outboundLeg || (hasReturn && !returnLeg) || (requireReturn && !returnLeg)) continue
     const rawPrice = record(f.price).total
     if (!['string', 'number'].includes(typeof rawPrice) || rawPrice === '') continue

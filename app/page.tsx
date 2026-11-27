@@ -10,7 +10,8 @@ import SavedSearches from '@/components/SavedSearches'
 import TravelLanding, { DestinationIdeas } from '@/components/TravelLanding'
 import type { HotelOffer } from '@/lib/hotel-offers'
 import { flightQuery, hotelQuery, validateTravelDates } from '@/lib/trip-search'
-import type { FlightOffer } from '@/lib/flight-offers'
+import { record, type FlightOffer } from '@/lib/flight-offers'
+import { normalizeParsedTrip } from '@/lib/parsed-trip'
 
 import { requestJson, loadFlights, loadHotels, settleSearch } from '@/lib/search-client'
 
@@ -25,9 +26,12 @@ const translateCityName = (name: string): string => {
   return translations[nameNormalized] || name
 }
 
+type IataEntry = { city: string; code: string }
+const airports: IataEntry[] = iataCodes
+
 const normalizeCity = (input: string): string => {
   const inputNormalized = input.toLowerCase().trim()
-  const found = iataCodes.find((item: any) => (
+  const found = airports.find((item) => (
     item.city.toLowerCase() === inputNormalized ||
     item.city.toLowerCase().includes(inputNormalized) ||
     input.toUpperCase() === item.code ||
@@ -44,7 +48,8 @@ const correctCitySpellingWithGPT = async (input: string, signal?: AbortSignal): 
       body: JSON.stringify({ input }),
       headers: { 'Content-Type': 'application/json' }
     })
-    return data.corrected || input
+    const corrected = record(data).corrected
+    return typeof corrected === 'string' && corrected.trim() ? corrected.trim() : input
   } catch (err) {
     if (signal?.aborted) throw err
     return input
@@ -83,8 +88,8 @@ export default function Home() {
   }, [error, loading])
 
   const getIataCode = (cityName: string): string | null => {
-    const match = iataCodes.find(
-      (item: any) => item.city.toLowerCase() === cityName.toLowerCase()
+    const match = airports.find(
+      (item) => item.city.toLowerCase() === cityName.toLowerCase()
     )
     return match ? match.code : null
   }
@@ -115,12 +120,12 @@ export default function Home() {
     try {
       if (prompt.trim() !== '') {
         try {
-        const parsed = await requestJson('/api/parse-trip', {
+        const parsed = normalizeParsedTrip(await requestJson('/api/parse-trip', {
           signal: controller.signal,
           method: 'POST',
           body: JSON.stringify({ prompt }),
           headers: { 'Content-Type': 'application/json' }
-        })
+        }))
 
         if (typeof parsed?.origin === 'string' && parsed.origin) {
           const corrected = await correctCitySpellingWithGPT(parsed.origin, controller.signal)
@@ -189,7 +194,7 @@ export default function Home() {
         ))
       }
       if (searchHotels) {
-        const cityName = iataCodes.find(item => item.code === newDestination.toUpperCase())?.city || newDestination
+        const cityName = airports.find(item => item.code === newDestination.toUpperCase())?.city || newDestination
         tasks.push(settleSearch(
           () => loadHotels(hotelQuery(translateCityName(cityName), newDate, newReturnDate, newPeople), controller.signal),
           offers => { setHotelResults(offers); setHotelDone(true) },

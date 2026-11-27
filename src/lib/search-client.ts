@@ -1,7 +1,12 @@
 import { fallbackFlights, isFlightOffer, type FlightOffer } from './flight-offers'
 import { isHotelOffer, type HotelOffer } from './hotel-offers'
 
-export async function requestJson(url: string, init: RequestInit = {}, timeoutMs = 20000): Promise<any> {
+function errorMessage(data: unknown): string | undefined {
+  if (data !== null && typeof data === 'object' && 'error' in data && typeof data.error === 'string') return data.error
+  return undefined
+}
+
+export async function requestJson(url: string, init: RequestInit = {}, timeoutMs = 20000): Promise<unknown> {
   const controller = new AbortController()
   const cancel = () => controller.abort()
   if (init.signal?.aborted) throw new Error('Die Suche wurde abgebrochen.')
@@ -9,9 +14,9 @@ export async function requestJson(url: string, init: RequestInit = {}, timeoutMs
   const timer = setTimeout(() => controller.abort(), timeoutMs)
   try {
     const response = await fetch(url, { ...init, signal: controller.signal })
-    let data
+    let data: unknown
     try { data = await response.json() } catch { throw new Error('Der Dienst hat keine gültige JSON-Antwort geliefert.') }
-    if (!response.ok) throw new Error(typeof data?.error === 'string' ? data.error : `Der Dienst meldet einen Fehler (${response.status}).`)
+    if (!response.ok) throw new Error(errorMessage(data) ?? `Der Dienst meldet einen Fehler (${response.status}).`)
     return data
   } catch (error) {
     if (init.signal?.aborted) throw new Error('Die Suche wurde abgebrochen.')
@@ -40,8 +45,9 @@ export async function loadFlights(query: string, signal?: AbortSignal, onRecomme
 }
 export async function loadHotels(query: string, signal?: AbortSignal): Promise<HotelOffer[]> {
   const data = await requestJson(`/api/hotels?${query}`, { signal }, 35000)
-  if (!Array.isArray(data?.results) || !data.results.every(isHotelOffer)) throw new Error('Ungültige Hotelangebote')
-  return data.results
+  const results = data !== null && typeof data === 'object' && 'results' in data ? data.results : undefined
+  if (!Array.isArray(results) || !results.every(isHotelOffer)) throw new Error('Ungültige Hotelangebote')
+  return results
 }
 export async function settleSearch<T>(task: () => Promise<T>, success: (value: T) => void, failure: (message: string) => void): Promise<void> {
   try { success(await task()) } catch (error) { failure(error instanceof Error ? error.message : 'Die Suche ist vorübergehend nicht verfügbar.') }
