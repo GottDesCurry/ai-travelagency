@@ -91,10 +91,13 @@ test('flight intro plays through clouds, reveals the website and only runs once 
  await expect(page.locator('.flight-experience-playing')).toBeVisible()
  // The jet visibly flies: it starts small on the left and travels right while growing towards the camera.
  const box=()=>page.locator('.intro-aircraft').evaluate(element=>{const r=element.getBoundingClientRect();return {x:r.left+r.width/2,width:r.width}})
+ // Take-off happens after the travel wish has been typed.
+ await expect.poll(()=>page.locator('.intro-aircraft').evaluate(element=>getComputedStyle(element).opacity),{timeout:5000}).toBe('1')
  const start=await box()
- await expect.poll(async()=>(await box()).x-start.x,{timeout:6000}).toBeGreaterThan(page.viewportSize()!.width*.3)
- expect((await box()).width).toBeGreaterThan(start.width*1.5)
- await expect(page.locator('.intro-aircraft img')).toHaveAttribute('src',/aircraft-blue/)
+ const width=page.viewportSize()!.width
+ await expect.poll(async()=>{const now=await box();return now.x-start.x>width*.25&&now.width>start.width*1.5},{timeout:7000}).toBe(true)
+ await expect(page.locator('.intro-aircraft image')).toHaveAttribute('href',/aircraft-blue/)
+ await expect(page.locator('.intro-wish-text')).toHaveText('Zürich → Malaga · 10.–14. August · 4 Personen')
  await page.screenshot({path:testInfo.outputPath('flight-intro.png')})
  await expect(page.getByRole('dialog',{name:'Flugintro'})).toHaveCount(0,{timeout:10000})
  await expect(page.getByRole('heading',{name:'Deine nächste Reise. Eine neue Perspektive.'})).toBeVisible()
