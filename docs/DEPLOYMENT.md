@@ -20,6 +20,7 @@ Vercel-Projekt `ai-travelagency`, Team `visnus-projects`. Production folgt `main
 | bis 2025-08 | dac2b9d | Production | Build-Fehler `@/lib/amadeus` |
 | 2026-10-13 | 03d6c5e (PR #7) | Preview | READY, Zugriff geschützt |
 | 2026-10-14 | 2ac5325 (PR #7) | Preview | READY, Live-APIs 403/429 |
-| 2026-11-27 | `claude/beta-stabilization` | – | noch nicht gepusht (GitHub-Verbindung fehlt) |
+| 2026-11-27 | `claude/beta-stabilization` | PR #8 | gemergt (3c2b397), Production-Deployment erfolgreich |
+| 2026-11-27 | `claude/ux-improvements` | neuer PR | Vorschau-Deployment, Merge erst nach Freigabe |
 
 Rollback: in Vercel das letzte geprüfte Deployment «Promote to Production».

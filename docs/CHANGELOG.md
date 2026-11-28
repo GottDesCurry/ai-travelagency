@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-27 – Branch `claude/ux-improvements`
+
+- Merkliste: Herz auf Flug- und Hotelkarten, Liste unter den Ergebnissen, nur im Browser (localStorage, validiert, max. 30). Gespeichert wird nur, was die Karte zeigt; Preise sind als Stand beim Merken markiert.
+- «Günstigste Kombination Flug + Hotel»: Summe echter Anbieterpreise, nur bei gleicher Währung und vorhandenem Hotelpreis, ohne Umrechnung, mit Hinweis zur Preisbasis.
+- Startseite: «Wohin zieht es dich?» mit dem Suchformular steht zuoberst (Seitentitel h1); der Bildbereich folgt weiter unten. Nach dem Intro erhält der Suchtitel den Fokus.
+- Kalender: Hinreise ab heute (Zeitzone Zürich), Rückreise frühestens am Hinreisedatum.
+- PRs #1–#7 geschlossen (durch #8 ersetzt).
+
 ## 2026-11-27 – Branch `claude/beta-stabilization`
 
 - `any` vollständig entfernt, `no-explicit-any` wieder aktiv; `eslint .` sauber (auch Tests/Skripte).

@@ -1,4 +1,3 @@
-// Testdeployment
 'use client'
 
 import { useState, useRef, useEffect, useMemo } from 'react'
@@ -7,6 +6,10 @@ import { airportCode, hotelCityName, resolveCity, unresolvedCityMessage } from '
 import FlightCard from '@/components/FlightCard'
 import HotelCard from '@/components/HotelCard'
 import SavedSearches from '@/components/SavedSearches'
+import FavoritesPanel from '@/components/FavoritesPanel'
+import { useFavorites } from '@/components/useFavorites'
+import { favoriteFromFlight, favoriteFromHotel, favoriteKey } from '@/lib/favorites'
+import { cheapestCombination } from '@/lib/trip-total'
 import TravelLanding, { DestinationIdeas } from '@/components/TravelLanding'
 import type { HotelOffer } from '@/lib/hotel-offers'
 import { flightQuery, hotelQuery, validateTravelDates } from '@/lib/trip-search'
@@ -73,6 +76,10 @@ export default function Home() {
   const [hotelError, setHotelError] = useState('')
   const [flightDone, setFlightDone] = useState(false)
   const [hotelDone, setHotelDone] = useState(false)
+  const [today, setToday] = useState('')
+  const favorites = useFavorites()
+  // Set after mount so server and client render the same markup.
+  useEffect(() => { setToday(new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Zurich' })) }, [])
   const searchInProgress = useRef(false)
   const activeSearch = useRef<AbortController | null>(null)
   useEffect(() => () => activeSearch.current?.abort(), [])
@@ -212,6 +219,7 @@ export default function Home() {
     if (flightSort === 'stops') return (a.stops + (a.returnLeg?.stops || 0)) - (b.stops + (b.returnLeg?.stops || 0)) || a.price - b.price
     return a.price - b.price
   }), [flightResults, directOnly, flightSort])
+  const combination = useMemo(() => cheapestCombination(flightResults, hotelResults), [flightResults, hotelResults])
   const fieldAccessibility = (id: string) => ({
     'aria-invalid': invalidFields.includes(id) || undefined,
     'aria-describedby': invalidFields.includes(id) ? 'search-error' : undefined,
@@ -226,9 +234,8 @@ export default function Home() {
   }
 
   return <>
-    <TravelLanding />
-    <section id="reise-suche" className="section-wrap" aria-labelledby="search-title">
-      <div className="section-heading"><div><p className="eyebrow">VON DER IDEE ZUR REISE</p><h2 id="search-title">Wohin zieht es dich?</h2></div><p>Dein Ziel. Deine Daten. Deine Auswahl.</p></div>
+    <section id="reise-suche" className="section-wrap search-first" aria-labelledby="search-title">
+      <div className="section-heading"><div><p className="eyebrow">VON DER IDEE ZUR REISE</p><h1 id="search-title" tabIndex={-1}>Wohin zieht es dich?</h1></div><p>Dein Ziel. Deine Daten. Deine Auswahl.</p></div>
       <div className="planner-card planner-grid">
         <div>
           <form onSubmit={event => { event.preventDefault(); void handleSearch() }} className="planner-form">
@@ -241,8 +248,8 @@ export default function Home() {
               <div className="field-grid">
                 <label htmlFor="origin"><span className="field-label">Abflugort</span><input id="origin" {...fieldAccessibility('origin')} value={origin} maxLength={120} onChange={event => setOrigin(event.target.value)} placeholder="ZRH / Zürich" className="travel-input"/></label>
                 <label htmlFor="destination"><span className="field-label">Reiseziel</span><input id="destination" {...fieldAccessibility('destination')} value={destination} maxLength={120} onChange={event => setDestination(event.target.value)} placeholder="BER / Berlin" className="travel-input"/></label>
-                <label htmlFor="departure-date"><span className="field-label">Hinreise / Check-in</span><input id="departure-date" {...fieldAccessibility('departure-date')} type="date" value={date} onChange={event => setDate(event.target.value)} className="travel-input"/></label>
-                <label htmlFor="return-date"><span className="field-label">Rückreise / Check-out</span><input id="return-date" {...fieldAccessibility('return-date')} type="date" value={returnDate} onChange={event => setReturnDate(event.target.value)} className="travel-input"/></label>
+                <label htmlFor="departure-date"><span className="field-label">Hinreise / Check-in</span><input id="departure-date" {...fieldAccessibility('departure-date')} type="date" min={today || undefined} value={date} onChange={event => setDate(event.target.value)} className="travel-input"/></label>
+                <label htmlFor="return-date"><span className="field-label">Rückreise / Check-out</span><input id="return-date" {...fieldAccessibility('return-date')} type="date" min={date || today || undefined} value={returnDate} onChange={event => setReturnDate(event.target.value)} className="travel-input"/></label>
                 <label htmlFor="adults"><span className="field-label">Erwachsene (1–9)</span><input id="adults" {...fieldAccessibility('adults')} type="number" min={1} max={9} step={1} value={people || ''} onChange={event => setPeople(Number(event.target.value))} className="travel-input"/></label>
               </div>
               <div className="search-options">
@@ -277,6 +284,14 @@ export default function Home() {
       <p className="subtle-note" style={{ marginTop: 16 }}>Die Beta hilft dir beim Vergleichen. Buchung und Zahlung erfolgen beim Anbieter.</p>
       <Link href="/kontakt#beta-feedback" className="feedback-link">Problem melden oder Feedback geben</Link>
     </section>
+    {combination && <section className="section-wrap" aria-labelledby="combination-title">
+      <div className="combination-card">
+        <p className="eyebrow">GÜNSTIGSTE KOMBINATION</p>
+        <h2 id="combination-title">Flug + Hotel ab {combination.total.toLocaleString('de-CH', { minimumFractionDigits: 2 })} {combination.currency}</h2>
+        <p>{combination.flight.departure.iataCode} → {combination.flight.arrival.iataCode} mit {combination.flight.airline} ({combination.flight.price.toLocaleString('de-CH', { minimumFractionDigits: 2 })} {combination.currency}) und {combination.hotel.name} ({(combination.hotel.price ?? 0).toLocaleString('de-CH', { minimumFractionDigits: 2 })} {combination.currency}).</p>
+        <p className="subtle-note">Summe der Anbieterpreise in derselben Währung, ohne Umrechnung. Ob ein Preis pro Person oder für alle Reisenden gilt, beim Anbieter prüfen. Beide Angebote werden separat gebucht.</p>
+      </div>
+    </section>}
     {flightResults.length > 0 && <section className="section-wrap" aria-labelledby="flights-title">
       <div className="section-heading"><h2 id="flights-title">Flüge · {flightResults.length} Angebote</h2><p>Alle gültigen Angebote aus der aktuellen Anbieterantwort.</p></div>
       <div className="result-toolbar">
@@ -286,13 +301,15 @@ export default function Home() {
       </div>
       <p className="subtle-note">Empfehlungen vergleichen eine Auswahl der günstigsten Angebote. Bei KI-Ausfall zählen Preis und Zwischenstopps.</p>
       {visibleFlights.length === 0 ? <div className="empty-results"><p>Keine Direktflüge in diesen Angeboten gefunden.</p><button type="button" onClick={() => setDirectOnly(false)} className="secondary-button">Alle Flüge anzeigen</button></div> : <div className="offer-grid">{visibleFlights.map(flight => <div key={flight.id} className="offer-wrap">
-        <FlightCard flight={flight} recommended={recommendedFlightIds.includes(flight.id)}/>
+        <FlightCard flight={flight} recommended={recommendedFlightIds.includes(flight.id)} favorite={{ saved: favorites.has(favoriteKey('flight', flight.id)), disabled: !favorites.ready, onToggle: () => favorites.toggle(favoriteFromFlight(flight)) }}/>
       </div>)}</div>}
     </section>}
     {hotelResults.length > 0 && <section className="section-wrap" aria-labelledby="hotels-title">
       <div className="section-heading"><h2 id="hotels-title">Hotels · {hotelResults.length} Angebote</h2><p>Für deinen angefragten Aufenthalt.</p></div>
-      <div className="offer-grid">{hotelResults.map(hotel => <HotelCard key={hotel.id} hotel={hotel}/>)}</div>
+      <div className="offer-grid">{hotelResults.map(hotel => <HotelCard key={hotel.id} hotel={hotel} favorite={{ saved: favorites.has(favoriteKey('hotel', hotel.id || hotel.name)), disabled: !favorites.ready, onToggle: () => favorites.toggle(favoriteFromHotel(hotel)) }}/>)}</div>
     </section>}
+    <FavoritesPanel items={favorites.items} message={favorites.message} onRemove={favorites.remove} onClear={favorites.clear}/>
+    <TravelLanding />
     <DestinationIdeas onChoose={chooseDestination} disabled={loading}/>
   </>
 }

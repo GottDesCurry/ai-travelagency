@@ -8,7 +8,7 @@
 | `npm run smoke` | startet den Production-Build ohne Schlüssel und prüft Seite + API-Fehlerfälle |
 | `npm run e2e` | Playwright Desktop + iPhone 13; alle `/api/*`-Antworten gemockt |
 
-Stand 27.11.2026: 55 Node-Tests, Smoke, 36 Browsertests grün. CI (`.github/workflows/ci.yml`) führt dieselben Schritte bei jedem PR aus.
+Stand 27.11.2026: 60 Node-Tests, Smoke, 38 Browsertests grün. CI (`.github/workflows/ci.yml`) führt dieselben Schritte bei jedem PR aus.
 
 ## Abgedeckte Fälle (Mock)
 
