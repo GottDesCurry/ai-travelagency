@@ -4,12 +4,33 @@ import { providerFailure } from '../../src/lib/provider-errors'
 import { allowRequest, pagesClient, RATE_LIMIT_MESSAGE } from '../../src/lib/rate-limit'
 import { normalizeHotelOffers } from '../../src/lib/hotel-offers'
 import { validAdults, validateTravelDates } from '../../src/lib/trip-search'
+import { liteApiSandboxKey } from '../../src/lib/sandbox-providers'
+import { searchLiteHotels } from '../../src/lib/liteapi'
+import { airports, resolveCity, hotelCityName } from '../../src/lib/city-lookup'
+import { countryCode } from '../../src/lib/country-codes'
 const API_HOST = 'booking-com18.p.rapidapi.com'
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') { res.setHeader('Allow', 'GET'); return res.status(405).json({ error: 'Nur GET wird unterstützt.' }) }
   const { city, checkin, checkout, adults = '1' } = req.query
   const dateError = validateTravelDates(checkin, checkout, true)
   if (typeof city !== 'string' || !city.trim() || !validAdults(adults) || dateError) return res.status(400).json({ error: dateError || 'Eine Stadt und 1–9 Erwachsene sind erforderlich.' })
+  const liteKey = liteApiSandboxKey()
+  if (liteKey) {
+    // Sandbox environment: Nuitée/LiteAPI test rates replace the RapidAPI hotel search.
+    const resolved = resolveCity(city)
+    const entry = resolved.kind === 'found' ? airports.find(item => item.code === resolved.code) : undefined
+    const country = entry ? countryCode(entry.country) : null
+    if (!country) return res.status(400).json({ error: 'Für die Hotel-Testsuche bitte eine bekannte Stadt wählen (z. B. Berlin, Lissabon, Barcelona).' })
+    if (!allowRequest('provider', pagesClient(req))) return res.status(429).json({ error: RATE_LIMIT_MESSAGE })
+    try {
+      const results = await searchLiteHotels(liteKey, { cityName: hotelCityName(city), countryCode: country, checkin: String(checkin), checkout: String(checkout), adults: Number(adults) })
+      return res.status(200).json({ city: city.trim(), results })
+    } catch (error) {
+      const failure = providerFailure(error, 'Hotel')
+      console.warn(`[liteapi] ${failure.code}`)
+      return res.status(failure.status).json({ error: failure.message })
+    }
+  }
   if (!process.env.RAPIDAPI_KEY) return res.status(503).json({ error: 'Die Hotelsuche ist noch nicht konfiguriert.' })
   if (!allowRequest('provider', pagesClient(req))) return res.status(429).json({ error: RATE_LIMIT_MESSAGE })
   const options = { timeout: 15000, headers: { 'X-RapidAPI-Key': process.env.RAPIDAPI_KEY, 'X-RapidAPI-Host': API_HOST } }

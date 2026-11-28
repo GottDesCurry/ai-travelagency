@@ -291,6 +291,7 @@ export default function Home() {
         <p className="eyebrow">GÜNSTIGSTE KOMBINATION</p>
         <h2 id="combination-title">Flug + Hotel ab {combination.total.toLocaleString('de-CH', { minimumFractionDigits: 2 })} {combination.currency}</h2>
         <p>{combination.flight.departure.iataCode} → {combination.flight.arrival.iataCode} mit {combination.flight.airline} ({combination.flight.price.toLocaleString('de-CH', { minimumFractionDigits: 2 })} {combination.currency}) und {combination.hotel.name} ({(combination.hotel.price ?? 0).toLocaleString('de-CH', { minimumFractionDigits: 2 })} {combination.currency}).</p>
+        {(combination.flight.testData || combination.hotel.testData) && <p className="test-badge">Testdaten · nicht buchbar</p>}
         <p className="subtle-note">Summe der Anbieterpreise in derselben Währung, ohne Umrechnung. Ob ein Preis pro Person oder für alle Reisenden gilt, beim Anbieter prüfen. Beide Angebote werden separat gebucht.</p>
       </div>
     </section>}

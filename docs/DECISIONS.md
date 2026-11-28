@@ -13,3 +13,4 @@
 | 2026-11-27 | In-Memory-Rate-Limit statt externem Store | kostenlos, sofort wirksam; globales Limit (z. B. Vercel KV/Upstash) vor grossem öffentlichem Start nötig, kostet ggf. Geld → Zustimmung |
 | 2026-11-27 | Keine Bereinigung der Git-Historie wegen des alten RapidAPI-Schlüssels | destruktiv; Rotation beim Anbieter ist die wirksame Massnahme |
 | 2026-11-27 | Airline-Logo, Hotelsterne/Bewertungen/Tags erst nach Live-Schema | Felder dürfen nicht geraten oder erfunden werden |
+| 2026-11-28 | Duffel (Flüge) und Nuitée/LiteAPI (Hotels) zusätzlich, vorerst nur Sandbox und nur Suche | Freigabe Betreiber; Ziel: echte Buchbarkeit auf einer Seite und Provision (Nuitée-Aufschlag). RapidAPI bleibt für die Live-Beta. Live-Schlüssel werden im Code ignoriert. |

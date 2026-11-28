@@ -1,6 +1,6 @@
 # API-Integrationen
 
-Beta-Umfang: ausschliesslich **Booking.com über RapidAPI** und **OpenAI**. Weitere Anbieter erst nach der Beta (siehe [ROADMAP.md](ROADMAP.md)).
+Live-Beta: **Booking.com über RapidAPI** und **OpenAI**. Seit 28.11.2026 vom Betreiber freigegeben: **Duffel** (Flüge) und **Nuitée/LiteAPI** (Hotels), vorerst **nur in der Testumgebung** und nur Suche, keine Buchung.
 
 ## Umgebungsvariablen
 
@@ -8,6 +8,8 @@ Beta-Umfang: ausschliesslich **Booking.com über RapidAPI** und **OpenAI**. Weit
 |---|---|---|
 | `RAPIDAPI_KEY` | alle Booking-Aufrufe | `.env.local` lokal, Vercel → Settings → Environment Variables |
 | `OPENAI_API_KEY` | parse-trip, ai-correct-city, ai | ebenso |
+| `DUFFEL_ACCESS_TOKEN` | Flugsuche über Duffel statt RapidAPI | nur Vercel **Preview**; nur `duffel_test_…` wird verwendet |
+| `LITEAPI_KEY` | Hotelsuche über Nuitée statt RapidAPI | nur Vercel **Preview**; nur `sand_…` wird verwendet |
 
 Nur serverseitig, nie mit `NEXT_PUBLIC_`. `.env.example` enthält nur leere Platzhalter. `.env*` ist in `.gitignore`.
 
@@ -22,6 +24,19 @@ Nur serverseitig, nie mit `NEXT_PUBLIC_`. `.env.example` enthält nur leere Plat
 
 Gleiche Markennamen auf RapidAPI bedeuten nicht dieselbe API. Vor der Live-Beta muss genau ein abonniertes Produkt pro Suchbereich gewählt und mit echten Antworten abgeglichen werden.
 
+## Sandbox-Anbieter (Testumgebung)
+
+| Anbieter | Endpunkt | Code | Status |
+|---|---|---|---|
+| Duffel | `POST https://api.duffel.com/air/offer_requests?return_offers=true`, Header `Duffel-Version: v2` | `src/lib/duffel.ts` | Schema aus dem offiziellen JS-SDK (`duffel-api-javascript`), **nicht live bestätigt** |
+| Nuitée (LiteAPI) | `POST https://api.liteapi.travel/v3.0/hotels/rates`, Header `X-API-Key`; Ort über `cityName` + `countryCode` | `src/lib/liteapi.ts` | Schema laut Doku docs.nuitee.com, **nicht live bestätigt** (Preisfeld `offerRetailRate`, Hoteldaten in `hotels[]`) |
+
+- Ist ein gültiger Test-/Sandbox-Schlüssel gesetzt, ersetzt der Anbieter die RapidAPI-Suche im jeweiligen Bereich. Live-Schlüssel (`duffel_live_…`, Produktionsschlüssel ohne `sand_`) werden ignoriert, damit nie versehentlich echte Buchungen oder Kosten entstehen.
+- Angebote tragen `testData: true` und werden als «Testdaten · nicht buchbar» angezeigt, ohne Buchungslink.
+- Duffel liefert keinen Buchungslink; Buchung bräuchte später `POST /air/orders` mit Passagierdaten und Zahlung (Live: ca. 3 USD pro Buchung). Nuitée-Buchung (`/rates/prebook`, `/rates/book`) ist noch nicht eingebaut.
+- Nuitée-Sandbox: 5 Anfragen pro Sekunde pro Schlüssel.
+- Prüfen nach dem Eintragen: `npm run live-check` bzw. Workflow «Live check (manual)» (je 1 Abfrage).
+
 ## OpenAI
 
 | Route | Modell | Zweck | Grenzen |
@@ -34,4 +49,4 @@ Kosten pro Suche (Richtwert): 1 parse-trip (nur mit Prompt), 0–2 Korrekturen (
 
 ## Nicht verwendet (bewusst)
 
-Amadeus, Skyscanner, Kiwi, LiteAPI und weitere Anbieter. Keine Platzhalter im Code.
+Amadeus (eingestellt), Skyscanner, Kiwi und weitere Anbieter. Keine Platzhalter im Code.

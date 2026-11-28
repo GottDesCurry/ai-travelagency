@@ -24,13 +24,13 @@ export interface FavoriteControl { saved: boolean; disabled?: boolean; onToggle:
 export default function FlightCard({ flight, recommended = false, favorite }: { flight: FlightOffer; recommended?: boolean; favorite?: FavoriteControl }) {
   const outbound = flight.outboundLeg || { duration: flight.duration, stops: flight.stops, departure: flight.departure, arrival: flight.arrival, airline: flight.airline, airlineCode: flight.airlineCode, segments: [] }
   return <article className="FlightCard offer-card space-y-4">
-    {(recommended || favorite) && <div className="offer-card-top">
-      {recommended ? <span className="recommendation">Empfohlen</span> : <span/>}
+    {(recommended || favorite || flight.testData) && <div className="offer-card-top">
+      <span className="offer-badges">{recommended && <span className="recommendation">Empfohlen</span>}{flight.testData && <span className="test-badge">Testdaten · nicht buchbar</span>}</span>
       {favorite && <FavoriteButton {...favorite} label={`Flug ${flight.departure.iataCode} nach ${flight.arrival.iataCode}, ${flight.price.toLocaleString('de-CH')} ${flight.currency}`}/>}
     </div>}
     <Leg leg={outbound} label="Hinflug" />
     {flight.returnLeg && <Leg leg={flight.returnLeg} label="Rückflug" />}
     <p className="offer-price">{flight.price.toLocaleString('de-CH', { minimumFractionDigits: 2 })} {flight.currency} laut Anbieter{flight.returnLeg ? ' für Hin- und Rückflug' : ''}</p>
-    <BookingLink url={flight.bookingLink} label="Zum Flugangebot" />
+    {flight.testData ? <p className="text-sm text-gray-500">Testangebot aus der Duffel-Sandbox. Eine Buchung ist hier nicht möglich.</p> : <BookingLink url={flight.bookingLink} label="Zum Flugangebot" />}
   </article>
 }

@@ -1,5 +1,5 @@
 // Manual live check after a key change. Sends at most 3 RapidAPI requests (location, hotels,
-// flights) and, only with --openai, 1 tiny OpenAI request. Prints status codes, the response
+// flights), 1 Duffel test-mode and 1 Nuitée sandbox request when those keys are set, and, only with --openai, 1 tiny OpenAI request. Prints status codes, the response
 // shape (field names, no values) and how many offers our normalizers accept. Never prints keys.
 // Usage: RAPIDAPI_KEY=... [OPENAI_API_KEY=...] npm run live-check [-- --openai]
 const fs = require('node:fs'), path = require('node:path'), Module = require('node:module'), ts = require('typescript')
@@ -11,8 +11,9 @@ function load(file, deps = {}) {
   return m.exports
 }
 const flights = load('src/lib/flight-offers.ts'), hotels = load('src/lib/hotel-offers.ts', { './flight-offers': flights })
+const duffel = load('src/lib/duffel.ts', { './flight-offers': flights }), lite = load('src/lib/liteapi.ts', { './flight-offers': flights })
 const HOST = 'booking-com18.p.rapidapi.com'
-const secrets = [process.env.RAPIDAPI_KEY, process.env.OPENAI_API_KEY].filter(Boolean)
+const secrets = [process.env.RAPIDAPI_KEY, process.env.OPENAI_API_KEY, process.env.DUFFEL_ACCESS_TOKEN, process.env.LITEAPI_KEY].filter(Boolean)
 const redact = text => secrets.reduce((out, secret) => out.split(secret).join('[redacted]'), String(text))
 
 function shape(value, depth = 0) {
@@ -36,13 +37,26 @@ async function rapid(endpoint, params) {
 }
 function report(title, result, extra = '') {
   console.log(`\n## ${title}: HTTP ${result.status}${extra}`)
-  if (result.status !== 200) console.log(redact(JSON.stringify(result.body)).slice(0, 300))
+  if (result.status !== 200 && result.status !== 201) console.log(redact(JSON.stringify(result.body)).slice(0, 300))
   else console.log(JSON.stringify(shape(result.body), null, 1).slice(0, 2500))
 }
 
 async function main() {
-  if (!process.env.RAPIDAPI_KEY) { console.error('RAPIDAPI_KEY fehlt. Abbruch, es wurde nichts gesendet.'); process.exitCode = 1; return }
+  const duffelToken = process.env.DUFFEL_ACCESS_TOKEN?.startsWith('duffel_test_') ? process.env.DUFFEL_ACCESS_TOKEN : null
+  const liteKey = process.env.LITEAPI_KEY?.startsWith('sand_') ? process.env.LITEAPI_KEY : null
+  if (!process.env.RAPIDAPI_KEY && !duffelToken && !liteKey) { console.error('Kein Schlüssel gesetzt (RAPIDAPI_KEY, DUFFEL_ACCESS_TOKEN=duffel_test_…, LITEAPI_KEY=sand_…). Abbruch, es wurde nichts gesendet.'); process.exitCode = 1; return }
   const checkin = isoDate(30), checkout = isoDate(33)
+  if (duffelToken) {
+    const response = await fetch('https://api.duffel.com/air/offer_requests?return_offers=true&supplier_timeout=15000', { method: 'POST', signal: AbortSignal.timeout(25000), headers: { Authorization: `Bearer ${duffelToken}`, 'Duffel-Version': 'v2', Accept: 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify(duffel.duffelRequestBody({ origin: 'ZRH', destination: 'BER', date: checkin, returnDate: checkout, adults: 1 })) })
+    let body = null; try { body = await response.json() } catch { /* not JSON */ }
+    report('Duffel Testmodus: Flüge ZRH ⇄ BER', { status: response.status, body }, response.status === 200 || response.status === 201 ? normalized(() => duffel.normalizeDuffelOffers(body, true)) : '')
+  }
+  if (liteKey) {
+    const response = await fetch('https://api.liteapi.travel/v3.0/hotels/rates', { method: 'POST', signal: AbortSignal.timeout(25000), headers: { 'X-API-Key': liteKey, Accept: 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify(lite.liteRequestBody({ cityName: 'Berlin', countryCode: 'DE', checkin, checkout, adults: 2 })) })
+    let body = null; try { body = await response.json() } catch { /* not JSON */ }
+    report('Nuitée Sandbox: Hotels Berlin', { status: response.status, body }, response.status === 200 ? normalized(() => lite.normalizeLiteHotels(body)) : '')
+  }
+  if (!process.env.RAPIDAPI_KEY) return
   const location = await rapid('/stays/auto-complete', { query: 'Berlin' })
   report('Hotel-Ort (Berlin)', location)
   const locationId = location.status === 200 && Array.isArray(location.body) ? location.body[0]?.id : undefined

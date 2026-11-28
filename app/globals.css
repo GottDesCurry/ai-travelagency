@@ -221,3 +221,5 @@ main>section:not(.hero):not(.section-wrap),main>div.max-w-5xl { margin-top:30px;
 /* Beta-Status vor der Suche */
 .service-notice { margin:0 0 18px; padding:14px 18px; border-radius:14px; border:1px solid #ffd27a55; background:#3a2a0a99; color:#ffe9bf; font-size:14px; line-height:1.6; }
 .service-notice p { margin:0; }
+.offer-badges { display:flex; flex-wrap:wrap; gap:8px; }
+.test-badge { display:inline-flex; align-self:flex-start; border:1px solid #ffd27a66; background:#3a2a0a99; color:#ffe2a8; border-radius:99px; padding:5px 11px; font-size:11px; }
