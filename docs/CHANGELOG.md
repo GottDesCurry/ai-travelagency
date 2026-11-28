@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-28 – Branch `claude/beta-readiness`
+
+- `/api/status` meldet nur, ob Such- und KI-Schlüssel gesetzt sind (keine Anbieteraufrufe, keine Werte).
+- Hinweis über dem Suchformular, wenn die Flug-/Hotelsuche oder die KI in dieser Version nicht freigeschaltet ist.
+- `npm run live-check`: manueller Live-Test nach Schlüsselwechsel (max. 3 RapidAPI-Abfragen, OpenAI nur mit `--openai`), erkennt Schema-Abweichungen.
+
 ## 2026-11-27 – Branch `claude/ux-improvements`
 
 - Merkliste: Herz auf Flug- und Hotelkarten, Liste unter den Ergebnissen, nur im Browser (localStorage, validiert, max. 30). Gespeichert wird nur, was die Karte zeigt; Preise sind als Stand beim Merken markiert.
