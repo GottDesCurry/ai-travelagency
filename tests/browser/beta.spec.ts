@@ -157,7 +157,7 @@ test('flight intro is bypassed on a slow mobile connection',async({page})=>{
 })
 test('validation focuses its message, identifies fields and sends no provider request',async({page})=>{
  let calls=0
- await page.route('**/api/**',route=>{calls++;return route.fulfill({json:[]})})
+ await page.route('**/api/**',route=>{if(!route.request().url().endsWith('/api/status'))calls++;return route.fulfill({json:[]})})
  await page.goto('/')
  await page.getByRole('button',{name:'Suche starten'}).click()
  await expect(page.locator('#search-error')).toBeFocused()
@@ -244,4 +244,15 @@ test('favorites survive a reload, the cheapest flight + hotel total is shown and
  await page.getByRole('button',{name:/entfernen/}).click()
  await page.reload();await expect(page.locator('.favorite-item')).toHaveCount(0)
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy()
+})
+test('a beta notice explains before searching when the provider is not switched on',async({page})=>{
+ await page.goto('/')
+ await expect(page.getByText(/Flug- und Hotelsuche ist in dieser Version noch nicht freigeschaltet/)).toBeVisible()
+ await page.route('**/api/status',route=>route.fulfill({json:{search:true,ai:false}}))
+ await page.reload()
+ await expect(page.getByText(/KI-Erkennung des Reisewunschs ist gerade nicht verfügbar/)).toBeVisible()
+ await expect(page.getByText(/noch nicht freigeschaltet/)).toHaveCount(0)
+ await page.route('**/api/status',route=>route.fulfill({json:{search:true,ai:true}}))
+ await page.reload();await page.waitForLoadState('networkidle')
+ await expect(page.locator('.service-notice')).toHaveCount(0)
 })

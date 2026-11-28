@@ -24,6 +24,7 @@ async function run() {
   for(const path of ['/hilfe','/kontakt','/impressum','/datenschutz','/agb']) {const response=await fetch(base+path);assert.equal(response.status,200,path)}
   const contact=await (await fetch(base+'/kontakt')).text();assert.ok(!contact.includes('<form'));assert.ok(contact.includes('mailto:info@book-repeat.ch'))
   const home=await (await fetch(base)).text();for(const path of ['/partner','/firmeninfo'])assert.ok(!home.includes('href="'+path+'"'))
+  const status=await (await fetch(base+'/api/status')).json();assert.deepEqual(status,{search:false,ai:false})
   const cases=[
    ['/api/flights?origin=ZRH&destination=BER&date=2099-01-01',503],
    ['/api/flights?origin=invalid&destination=BER&date=2099-01-01',400],

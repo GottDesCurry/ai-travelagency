@@ -1,6 +1,6 @@
 # Projektstatus
 
-Stand: 27. November 2026. `main` = PR #8 (Merge 3c2b397), Production auf Vercel deployt. Weiterentwicklung auf `claude/ux-improvements`.
+Stand: 28. November 2026. `main` = PR #9 (b635958), Production auf Vercel deployt. Weiterentwicklung auf `claude/beta-readiness`.
 
 ## Kurzfassung
 
@@ -12,7 +12,8 @@ Der Code baut, alle Prüfungen sind grün und die Bedienung ist mit Mock-Daten g
 |---|---|---|
 | GitHub `main` | 3c2b397 (27.11.2026) | PR #8 gemergt (PR #7 + Stabilisierung + neues Intro). Baut, CI grün, Production-Deployment erfolgreich. |
 | PRs #1–#7 | geschlossen | Durch #8 ersetzt. Branch `fix/travel-search-dates-guests` (PR #1) bleibt als Referenz für KI-Tagesplan, gespeicherte Reisen und Airbnb-Link. |
-| `claude/ux-improvements` | neuer PR | Merkliste, Kombination Flug + Hotel, Kalendersperre. |
+| PR #9 `claude/ux-improvements` | gemergt 28.11.2026 | Merkliste, Kombination Flug + Hotel, Kalendersperre, Suche zuoberst. |
+| `claude/beta-readiness` | neuer PR | Statusanzeige, Live-Check-Skript. |
 | Lokal `F:\ai-travelagency` | 0624547 (02.08.2025) | Veraltet, keine ungepushten neueren Änderungen. GitHub ist massgeblich. |
 
 Der frühere Vercel-Fehler `Can't resolve '@/lib/amadeus'` (Commit dac2b9d) ist auf PR #7 behoben; Amadeus/Kiwi kommen im Code nicht mehr vor.
@@ -24,10 +25,10 @@ Der frühere Vercel-Fehler `Can't resolve '@/lib/amadeus'` (Commit dac2b9d) ist 
 | `npm audit --omit=dev` | 0 Schwachstellen (nach Update auf Next 15.5.29, axios 1.21) |
 | `npx tsc --noEmit` | ok |
 | `npx eslint .` | ok, `no-explicit-any` wieder aktiv, 0 `any` im Code |
-| `npm test` | 60/60 |
+| `npm test` | 62/62 |
 | `npm run build` | ok |
 | `npm run smoke` | ok (Seite + 10 API-Fälle ohne Schlüssel) |
-| `npm run e2e` | 38/38 (Desktop + Mobile, alle APIs gemockt) |
+| `npm run e2e` | 40/40 (Desktop + Mobile, alle APIs gemockt) |
 | Echte API-Tests | **nicht möglich**: keine Schlüssel in dieser Umgebung, Zugänge laut letzter Live-Prüfung gesperrt |
 
 ## Externe Blocker (Entscheidung des Betreibers nötig)
@@ -60,6 +61,6 @@ Der frühere Vercel-Fehler `Can't resolve '@/lib/amadeus'` (Commit dac2b9d) ist 
 ## Nächste Schritte
 
 1. Betreiber: RapidAPI-Abo/Schlüsselrotation, OpenAI-Guthaben mit Budget, Vercel-Zugang, Entscheid zum Namen «Book Repeat».
-2. PR `claude/ux-improvements` prüfen und mergen.
+2. Nach Schlüsselwechsel: `npm run live-check` (siehe docs/TESTING.md), Adapter bei Schema-Abweichung anpassen.
 3. Mit gültigen Schlüsseln: wenige echte Aufrufe (ZRH→BER einfach/retour, 1 und 2 Erwachsene, Hotel Berlin) und Adapter gegen das echte Schema prüfen.
 4. Preview-Deployment testen, dann Production freigeben.

@@ -6,6 +6,7 @@ import { airportCode, hotelCityName, resolveCity, unresolvedCityMessage } from '
 import FlightCard from '@/components/FlightCard'
 import HotelCard from '@/components/HotelCard'
 import SavedSearches from '@/components/SavedSearches'
+import ServiceNotice from '@/components/ServiceNotice'
 import FavoritesPanel from '@/components/FavoritesPanel'
 import { useFavorites } from '@/components/useFavorites'
 import { favoriteFromFlight, favoriteFromHotel, favoriteKey } from '@/lib/favorites'
@@ -236,6 +237,7 @@ export default function Home() {
   return <>
     <section id="reise-suche" className="section-wrap search-first" aria-labelledby="search-title">
       <div className="section-heading"><div><p className="eyebrow">VON DER IDEE ZUR REISE</p><h1 id="search-title" tabIndex={-1}>Wohin zieht es dich?</h1></div><p>Dein Ziel. Deine Daten. Deine Auswahl.</p></div>
+      <ServiceNotice/>
       <div className="planner-card planner-grid">
         <div>
           <form onSubmit={event => { event.preventDefault(); void handleSearch() }} className="planner-form">
