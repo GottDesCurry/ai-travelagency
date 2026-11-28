@@ -8,7 +8,7 @@ async function run() {
  await new Promise((resolve,reject)=>{probe.once('error',reject);probe.listen(0,'127.0.0.1',resolve)})
  const port=probe.address().port
  await new Promise(resolve=>probe.close(resolve))
- const env={...process.env};delete env.RAPIDAPI_KEY;delete env.OPENAI_API_KEY
+ const env={...process.env};delete env.RAPIDAPI_KEY;delete env.OPENAI_API_KEY;delete env.DUFFEL_ACCESS_TOKEN;delete env.LITEAPI_KEY
  const child=spawn(process.execPath,[require.resolve('next/dist/bin/next'),'start','-H','127.0.0.1','-p',String(port)],{env,stdio:['ignore','pipe','pipe']})
  let output='';child.stdout.on('data',chunk=>{output+=chunk});child.stderr.on('data',chunk=>{output+=chunk})
  const base=`http://127.0.0.1:${port}`
@@ -24,7 +24,7 @@ async function run() {
   for(const path of ['/hilfe','/kontakt','/impressum','/datenschutz','/agb']) {const response=await fetch(base+path);assert.equal(response.status,200,path)}
   const contact=await (await fetch(base+'/kontakt')).text();assert.ok(!contact.includes('<form'));assert.ok(contact.includes('mailto:info@book-repeat.ch'))
   const home=await (await fetch(base)).text();for(const path of ['/partner','/firmeninfo'])assert.ok(!home.includes('href="'+path+'"'))
-  const status=await (await fetch(base+'/api/status')).json();assert.deepEqual(status,{search:false,ai:false})
+  const status=await (await fetch(base+'/api/status')).json();assert.deepEqual(status,{search:false,ai:false,testMode:false})
   const cases=[
    ['/api/flights?origin=ZRH&destination=BER&date=2099-01-01',503],
    ['/api/flights?origin=invalid&destination=BER&date=2099-01-01',400],

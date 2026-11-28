@@ -1,13 +1,13 @@
 const test=require('node:test'),assert=require('node:assert/strict'),ts=require('typescript'),fs=require('node:fs'),Module=require('node:module'),path=require('node:path')
 function load(p,deps={}){const m=new Module(p);m.require=name=>deps[name]||require(name);m._compile(ts.transpileModule(fs.readFileSync(p,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,p);return m.exports}
-const status=load('src/lib/service-status.ts')
+const sandbox=load('src/lib/sandbox-providers.ts'),status=load('src/lib/service-status.ts',{'./sandbox-providers':sandbox})
 test('status reports only whether keys are set, never their values',()=>{
- assert.deepEqual(status.serviceStatus({}),{search:false,ai:false})
- assert.deepEqual(status.serviceStatus({RAPIDAPI_KEY:'  ',OPENAI_API_KEY:''}),{search:false,ai:false})
+ assert.deepEqual(status.serviceStatus({}),{search:false,ai:false,testMode:false})
+ assert.deepEqual(status.serviceStatus({RAPIDAPI_KEY:'  ',OPENAI_API_KEY:''}),{search:false,ai:false,testMode:false})
  const result=status.serviceStatus({RAPIDAPI_KEY:'secret-r',OPENAI_API_KEY:'secret-o'})
- assert.deepEqual(result,{search:true,ai:true});assert.ok(!JSON.stringify(result).includes('secret'))
- assert.equal(status.isServiceStatus({search:true,ai:false}),true)
- for(const v of [null,{},{search:'yes',ai:true},{search:true}])assert.equal(status.isServiceStatus(v),false)
+ assert.deepEqual(result,{search:true,ai:true,testMode:false});assert.ok(!JSON.stringify(result).includes('secret'))
+ assert.equal(status.isServiceStatus({search:true,ai:false,testMode:false}),true)
+ for(const v of [null,{},{search:'yes',ai:true,testMode:false},{search:true,ai:true}])assert.equal(status.isServiceStatus(v),false)
 })
 test('live check sends at most 3 provider requests and never prints the key',async()=>{
  const calls=[],lines=[]

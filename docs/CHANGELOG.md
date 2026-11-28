@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-28 – Branch `claude/duffel-nuitee-sandbox`
+
+- Duffel-Flugsuche (Testmodus) und Nuitée/LiteAPI-Hotelsuche (Sandbox) als Adapter; aktiv nur mit `duffel_test_…` bzw. `sand_…`-Schlüssel, Live-Schlüssel werden ignoriert.
+- Sandbox-Angebote sichtbar als «Testdaten · nicht buchbar», ohne Buchungslink; Hinweis «Testumgebung» über der Suche.
+- Live-Check prüft zusätzlich Duffel und Nuitée (je 1 Abfrage); Workflow nimmt die Secrets `DUFFEL_ACCESS_TOKEN`, `LITEAPI_KEY`.
+
 ## 2026-11-28 – Branch `claude/beta-readiness`
 
 - `/api/status` meldet nur, ob Such- und KI-Schlüssel gesetzt sind (keine Anbieteraufrufe, keine Werte).

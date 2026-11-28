@@ -13,7 +13,7 @@ const server = {'next/server':{NextResponse:{json:(body,options={})=>Response.js
 async function withKey(key,fn) { const old=process.env.RAPIDAPI_KEY; if(key===undefined)delete process.env.RAPIDAPI_KEY;else process.env.RAPIDAPI_KEY=key;try{return await fn()}finally{if(old===undefined)delete process.env.RAPIDAPI_KEY;else process.env.RAPIDAPI_KEY=old} }
 test('flight requests reject malformed input and configuration before calling provider', async()=>{
  let calls=0
- const search=load('src/lib/flight-search.ts',{'./trip-search':trip,'./flight-offers':offers,'./provider-errors':failures,axios:{get:async()=>{calls++;throw Error()}}}).searchFlights
+ const search=load('src/lib/flight-search.ts',{'./trip-search':trip,'./flight-offers':offers,'./provider-errors':failures,'./sandbox-providers':{duffelTestToken:()=>null},'./duffel':{},axios:{get:async()=>{calls++;throw Error()}}}).searchFlights
  await withKey(undefined,async()=>{
   for(const bad of [{...query,origin:''},{...query,origin:'Zurich'},{...query,destination:'ZRH'},{...query,adults:'01'},{...query,adults:['4']},{...query,date:'2099-02-30'}]) assert.equal((await search(bad)).status,400)
   assert.equal((await search(query)).status,503);assert.equal(calls,0)
@@ -21,9 +21,9 @@ test('flight requests reject malformed input and configuration before calling pr
 })
 test('flight provider receives dates and adults; unexpected envelopes produce 502',async()=>{
  let options
- const search=load('src/lib/flight-search.ts',{'./trip-search':trip,'./flight-offers':offers,'./provider-errors':failures,axios:{get:async(url,o)=>{options=o;return {data:{data:[]}}}}}).searchFlights
+ const search=load('src/lib/flight-search.ts',{'./trip-search':trip,'./flight-offers':offers,'./provider-errors':failures,'./sandbox-providers':{duffelTestToken:()=>null},'./duffel':{},axios:{get:async(url,o)=>{options=o;return {data:{data:[]}}}}}).searchFlights
  await withKey('test',async()=>{assert.deepEqual(await search(query),{status:200,body:[]});assert.equal(options.params.returnDate,query.returnDate);assert.equal(options.params.adults,'4');assert.equal(options.timeout,15000)})
- const broken=load('src/lib/flight-search.ts',{'./trip-search':trip,'./flight-offers':offers,'./provider-errors':failures,axios:{get:async()=>({data:{error:'secret provider detail'}})}}).searchFlights
+ const broken=load('src/lib/flight-search.ts',{'./trip-search':trip,'./flight-offers':offers,'./provider-errors':failures,'./sandbox-providers':{duffelTestToken:()=>null},'./duffel':{},axios:{get:async()=>({data:{error:'secret provider detail'}})}}).searchFlights
  await withKey('test',async()=>{const result=await broken(query);assert.equal(result.status,502);assert.ok(!JSON.stringify(result).includes('secret'))})
 })
 test('legacy flight endpoint rejects malformed JSON and shares the validated search contract',async()=>{
@@ -68,7 +68,7 @@ test('legacy one-way parameter names preserve return date and adults and reject 
 
 test('flight access, quota and timeout failures are actionable without leaking upstream details',async()=>{
  for(const [error,expected] of [[{response:{status:403,data:{message:'private subscription detail'}}},503],[{response:{status:429}},429],[{code:'ECONNABORTED'},504]]) {
-  const search=load('src/lib/flight-search.ts',{'./trip-search':trip,'./flight-offers':offers,'./provider-errors':failures,axios:{get:async()=>{throw error}}}).searchFlights
+  const search=load('src/lib/flight-search.ts',{'./trip-search':trip,'./flight-offers':offers,'./provider-errors':failures,'./sandbox-providers':{duffelTestToken:()=>null},'./duffel':{},axios:{get:async()=>{throw error}}}).searchFlights
   await withKey('test',async()=>{const result=await search(query);assert.equal(result.status,expected);assert.ok(!JSON.stringify(result).includes('private'))})
  }
 })

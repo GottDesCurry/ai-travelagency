@@ -25,6 +25,8 @@ export interface FlightOffer {
   bookingLink?: string
   outboundLeg?: FlightLeg
   returnLeg?: FlightLeg
+  /** Offer from a provider sandbox/test mode: shown, but marked and not bookable. */
+  testData?: boolean
 }
 
 export type UnknownRecord = Record<string, unknown>
@@ -64,7 +66,7 @@ function normalizeLeg(value: unknown): FlightLeg | null {
 }
 export function isFlightOffer(value: unknown): value is FlightOffer {
   const f = record(value)
-  return typeof f.id === 'string' && f.id.length > 0 && typeof f.price === 'number' && Number.isFinite(f.price) && f.price >= 0 && typeof f.currency === 'string' && /^[A-Z]{3}$/.test(f.currency) && typeof f.duration === 'string' && isNonNegativeInteger(f.stops) && !!airport(f.departure) && !!airport(f.arrival) && typeof f.airline === 'string' && typeof f.airlineCode === 'string' && (f.bookingLink === undefined || httpsBookingLink(f.bookingLink) !== undefined) && (f.outboundLeg === undefined || isFlightLeg(f.outboundLeg)) && (f.returnLeg === undefined || isFlightLeg(f.returnLeg))
+  return typeof f.id === 'string' && f.id.length > 0 && typeof f.price === 'number' && Number.isFinite(f.price) && f.price >= 0 && typeof f.currency === 'string' && /^[A-Z]{3}$/.test(f.currency) && typeof f.duration === 'string' && isNonNegativeInteger(f.stops) && !!airport(f.departure) && !!airport(f.arrival) && typeof f.airline === 'string' && typeof f.airlineCode === 'string' && (f.bookingLink === undefined || httpsBookingLink(f.bookingLink) !== undefined) && (f.outboundLeg === undefined || isFlightLeg(f.outboundLeg)) && (f.returnLeg === undefined || isFlightLeg(f.returnLeg)) && (f.testData === undefined || typeof f.testData === 'boolean')
 }
 // Adapter for the itinerary-shaped payload currently used by Booking COM 18.
 // Unknown upstream envelopes are errors, rather than successful empty searches.

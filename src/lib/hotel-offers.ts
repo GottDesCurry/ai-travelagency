@@ -8,11 +8,13 @@ export interface HotelOffer {
   currency: string
   photo?: string
   bookingLink?: string
+  /** Offer from a provider sandbox: shown, but marked and not bookable. */
+  testData?: boolean
 }
 export function isHotelOffer(value: unknown): value is HotelOffer {
   if (!value || typeof value !== 'object') return false
   const h = value as HotelOffer
-  return typeof h.id === 'string' && typeof h.name === 'string' && !!h.name && typeof h.address === 'string' && typeof h.rating === 'string' && (h.price === null || (typeof h.price === 'number' && Number.isFinite(h.price) && h.price >= 0)) && typeof h.currency === 'string' && /^[A-Z]{3}$/.test(h.currency) && (h.photo === undefined || !!httpsBookingLink(h.photo)) && (h.bookingLink === undefined || !!httpsBookingLink(h.bookingLink))
+  return typeof h.id === 'string' && typeof h.name === 'string' && !!h.name && typeof h.address === 'string' && typeof h.rating === 'string' && (h.price === null || (typeof h.price === 'number' && Number.isFinite(h.price) && h.price >= 0)) && typeof h.currency === 'string' && /^[A-Z]{3}$/.test(h.currency) && (h.photo === undefined || !!httpsBookingLink(h.photo)) && (h.bookingLink === undefined || !!httpsBookingLink(h.bookingLink)) && (h.testData === undefined || typeof h.testData === 'boolean')
 }
 function optionalString(value: unknown): string {
   return typeof value === 'string' ? value : ''

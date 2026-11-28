@@ -2,6 +2,8 @@ import axios from 'axios'
 import { providerFailure } from './provider-errors'
 import { normalizeFlightOffers, type FlightOffer } from './flight-offers'
 import { validateTravelDates, validAdults } from './trip-search'
+import { duffelTestToken } from './sandbox-providers'
+import { searchDuffel } from './duffel'
 
 type Query = Record<string, unknown>
 type SearchResult = { status: number; body: FlightOffer[] | { error: string } }
@@ -15,6 +17,17 @@ export async function searchFlights(query: Query): Promise<SearchResult> {
   if (typeof origin !== 'string' || !/^[A-Z]{3}$/.test(origin) || typeof destination !== 'string' || !/^[A-Z]{3}$/.test(destination) || origin === destination || (returnDate !== undefined && typeof returnDate !== 'string') || !validAdults(adults)) return invalid('Zwei unterschiedliche IATA-Flughafencodes und 1–9 Erwachsene sind erforderlich.')
   const dateError = validateTravelDates(date, returnDate)
   if (dateError) return invalid(dateError)
+  const duffel = duffelTestToken()
+  if (duffel) {
+    // Sandbox environment (e.g. Vercel Preview): Duffel test offers replace the RapidAPI search.
+    try {
+      return { status: 200, body: await searchDuffel(duffel, { origin, destination, date: String(date), ...(returnDate ? { returnDate: String(returnDate) } : {}), adults: Number(adults) }) }
+    } catch (error) {
+      const failure = providerFailure(error, 'Flug')
+      console.warn(`[duffel] ${failure.code}`)
+      return invalid(failure.message, failure.status)
+    }
+  }
   if (!process.env.RAPIDAPI_KEY) return invalid('Die Flugsuche ist noch nicht konfiguriert.', 503)
   try {
     const response = await axios.get(`https://${API_HOST}/flights/search`, {

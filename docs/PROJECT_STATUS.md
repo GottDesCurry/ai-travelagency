@@ -13,7 +13,8 @@ Der Code baut, alle Prüfungen sind grün und die Bedienung ist mit Mock-Daten g
 | GitHub `main` | 3c2b397 (27.11.2026) | PR #8 gemergt (PR #7 + Stabilisierung + neues Intro). Baut, CI grün, Production-Deployment erfolgreich. |
 | PRs #1–#7 | geschlossen | Durch #8 ersetzt. Branch `fix/travel-search-dates-guests` (PR #1) bleibt als Referenz für KI-Tagesplan, gespeicherte Reisen und Airbnb-Link. |
 | PR #9 `claude/ux-improvements` | gemergt 28.11.2026 | Merkliste, Kombination Flug + Hotel, Kalendersperre, Suche zuoberst. |
-| `claude/beta-readiness` | neuer PR | Statusanzeige, Live-Check-Skript. |
+| PR #10 `claude/beta-readiness` | gemergt 28.11.2026 | Statusanzeige, Live-Check-Skript. |
+| `claude/duffel-nuitee-sandbox` | neuer PR | Duffel- und Nuitée-Adapter, nur Sandbox. |
 | Lokal `F:\ai-travelagency` | 0624547 (02.08.2025) | Veraltet, keine ungepushten neueren Änderungen. GitHub ist massgeblich. |
 
 Der frühere Vercel-Fehler `Can't resolve '@/lib/amadeus'` (Commit dac2b9d) ist auf PR #7 behoben; Amadeus/Kiwi kommen im Code nicht mehr vor.
@@ -25,10 +26,10 @@ Der frühere Vercel-Fehler `Can't resolve '@/lib/amadeus'` (Commit dac2b9d) ist 
 | `npm audit --omit=dev` | 0 Schwachstellen (nach Update auf Next 15.5.29, axios 1.21) |
 | `npx tsc --noEmit` | ok |
 | `npx eslint .` | ok, `no-explicit-any` wieder aktiv, 0 `any` im Code |
-| `npm test` | 62/62 |
+| `npm test` | 68/68 |
 | `npm run build` | ok |
 | `npm run smoke` | ok (Seite + 10 API-Fälle ohne Schlüssel) |
-| `npm run e2e` | 40/40 (Desktop + Mobile, alle APIs gemockt) |
+| `npm run e2e` | 42/42 (Desktop + Mobile, alle APIs gemockt) |
 | Echte API-Tests | **nicht möglich**: keine Schlüssel in dieser Umgebung, Zugänge laut letzter Live-Prüfung gesperrt |
 
 ## Externe Blocker (Entscheidung des Betreibers nötig)
@@ -54,6 +55,7 @@ Der frühere Vercel-Fehler `Can't resolve '@/lib/amadeus'` (Commit dac2b9d) ist 
 | Merkliste (Herz, lokal, max. 30) | umgesetzt, Mock-getestet |
 | Günstigste Kombination Flug + Hotel | umgesetzt (nur gleiche Währung, keine Umrechnung) |
 | Kalender sperrt vergangene Daten | umgesetzt |
+| Duffel-Flüge / Nuitée-Hotels (Sandbox, nur Suche) | umgesetzt, Mock-getestet; Schema nicht live bestätigt, Sandbox-Konten fehlen noch |
 | FlightCard: Airline-Logo | offen (früher externer Dienst airhex, Lizenz/Schlüssel ungeklärt) |
 | HotelCard: Sterne, Bewertungszahl, Rezensionen, Tags | offen; erst nach Live-Schema von Booking COM 18 abbildbar (nichts erfinden) |
 | Gepäckinformationen | nach der Beta |
